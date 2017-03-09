@@ -1,0 +1,218 @@
+package com.wifiin.redis;
+
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.wifiin.exception.RedisException;
+
+import redis.clients.jedis.BinaryClient.LIST_POSITION;
+import redis.clients.jedis.ShardedJedis;
+import redis.clients.jedis.SortingParams;
+
+public class JedisMethodHandles {
+	public static MethodHandle append;
+	public static MethodHandle decr;
+	public static MethodHandle decrBy;
+	public static MethodHandle del;
+	public static MethodHandle exists;
+	public static MethodHandle expire;
+	public static MethodHandle expireAt;
+	public static MethodHandle get;
+	public static MethodHandle getbit;
+	public static MethodHandle getrange;
+	public static MethodHandle getSet;
+	public static MethodHandle hdel;
+	public static MethodHandle hexists;
+	public static MethodHandle hget;
+	public static MethodHandle hgetAll;
+	public static MethodHandle hincrBy;
+	public static MethodHandle hkeys;
+	public static MethodHandle hlen;
+	public static MethodHandle hmget;
+	public static MethodHandle hmset;
+	public static MethodHandle hset;
+	public static MethodHandle hsetnx;
+	public static MethodHandle hvals;
+	public static MethodHandle incr;
+	public static MethodHandle incrBy;
+	public static MethodHandle lindex;
+	public static MethodHandle linsert;
+	public static MethodHandle llen;
+	public static MethodHandle lpop;
+	public static MethodHandle blpop;
+	public static MethodHandle blpopTimeout;
+	public static MethodHandle lpush;
+	public static MethodHandle lpushx;
+	public static MethodHandle lrange;
+	public static MethodHandle lrem;
+	public static MethodHandle lset;
+	public static MethodHandle ltrim;
+	public static MethodHandle rpop;
+	public static MethodHandle rpush;
+	public static MethodHandle rpushx;
+	public static MethodHandle sadd;
+	public static MethodHandle scard;
+	public static MethodHandle set;
+	public static MethodHandle setNXXX_EXPX;
+	public static MethodHandle setbit;
+	public static MethodHandle setex;
+	public static MethodHandle setnx;
+	public static MethodHandle setrange;
+	public static MethodHandle sismember;
+	public static MethodHandle smembers;
+	public static MethodHandle sort;
+	public static MethodHandle sortWITH_PARAMS;
+	public static MethodHandle spop;
+	public static MethodHandle srandmember;
+	public static MethodHandle srem;
+	public static MethodHandle substr;
+	public static MethodHandle ttl;
+	public static MethodHandle type;
+	public static MethodHandle zaddMULTI;
+	public static MethodHandle zadd;
+	public static MethodHandle zcard;
+	public static MethodHandle zcountDOUBLE;
+	public static MethodHandle zcountSTRING;
+	public static MethodHandle zincrby;
+	public static MethodHandle zrange;
+	public static MethodHandle zrangeByScoreDOUBLE_MINMAX;
+	public static MethodHandle zrangeByScoreSTRING_MINMAX;
+	public static MethodHandle zrangeByScoreDOUBLE_MINMAX_OFFSET_COUNT;
+	public static MethodHandle zrangeByScoreSTRING_MINMAX_OFFSET_COUNT;
+	public static MethodHandle zrangeByScoreWithScoresDOUBLE_MINMAX;
+	public static MethodHandle zrangeByScoreWithScoresSTRING_MINMAX;
+	public static MethodHandle zrangeByScoreWithScoresDOUBLE_MINMAX_OFFSET_COUNT;
+	public static MethodHandle zrangeByScoreWithScoresSTRING_MINMAX_OFFSET_COUNT;
+	public static MethodHandle zrangeWithScores;
+	public static MethodHandle zrank;
+	public static MethodHandle zrem;
+	public static MethodHandle zremrangeByRank;
+	public static MethodHandle zremrangeByScoreDOUBLE_MINMAX;
+	public static MethodHandle zremrangeByScoreSTRING_MINMAX;
+	public static MethodHandle zrevrange;
+	public static MethodHandle zrevrangeByScoreDOUBLE_MINMAX;
+	public static MethodHandle zrevrangeByScoreSTRING_MINMAX;
+	public static MethodHandle zrevrangeByScoreDOUBLE_MINMAX_OFFSET_COUNT;
+	public static MethodHandle zrevrangeByScoreSTRING_MINMAX_OFFSET_COUNT;
+	public static MethodHandle zrevrangeByScoreWithScoresDOUBLE_MINMAX;
+	public static MethodHandle zrevrangeByScoreWithScoresSTRING_MINMAX;
+	public static MethodHandle zrevrangeByScoreWithScoresDOUBLE_MINMAX_OFFSET_COUNT;
+	public static MethodHandle zrevrangeByScoreWithScoresSTRING_MINMAX_OFFSET_COUNT;
+	public static MethodHandle zrevrangeWithScores;
+	public static MethodHandle zrevrank;
+	public static MethodHandle zscore;
+
+	
+	
+	static{
+		try {
+			MethodHandles.Lookup lookup=MethodHandles.lookup();
+			append=lookup.findVirtual(ShardedJedis.class, "append", MethodType.methodType(Long.class,String.class,String.class));
+			decr=lookup.findVirtual(ShardedJedis.class, "decr", MethodType.methodType(Long.class,String.class));
+			decrBy=lookup.findVirtual(ShardedJedis.class, "decrBy", MethodType.methodType(Long.class,String.class,long.class));
+			del=lookup.findVirtual(ShardedJedis.class, "del", MethodType.methodType(Long.class,String.class));
+			exists=lookup.findVirtual(ShardedJedis.class, "exists", MethodType.methodType(Boolean.class,String.class));
+			expire=lookup.findVirtual(ShardedJedis.class, "expire", MethodType.methodType(Long.class,String.class,int.class));
+			expireAt=lookup.findVirtual(ShardedJedis.class, "expireAt", MethodType.methodType(Long.class,String.class,long.class));
+			get=lookup.findVirtual(ShardedJedis.class, "get", MethodType.methodType(String.class,String.class));
+			getbit=lookup.findVirtual(ShardedJedis.class, "getbit", MethodType.methodType(Boolean.class,String.class,long.class));
+			getrange=lookup.findVirtual(ShardedJedis.class, "getrange", MethodType.methodType(String.class,String.class,long.class,long.class));
+			getSet=lookup.findVirtual(ShardedJedis.class, "getSet", MethodType.methodType(String.class,String.class,String.class));
+			hgetAll=lookup.findVirtual(ShardedJedis.class, "hgetAll", MethodType.methodType(Map.class,String.class));
+			hdel=lookup.findVirtual(ShardedJedis.class, "hdel", MethodType.methodType(Long.class,String.class,String[].class));
+			hexists=lookup.findVirtual(ShardedJedis.class, "hexists", MethodType.methodType(Boolean.class,String.class,String.class));
+			hget=lookup.findVirtual(ShardedJedis.class, "hget", MethodType.methodType(String.class,String.class,String.class));
+			hincrBy=lookup.findVirtual(ShardedJedis.class, "hincrBy", MethodType.methodType(Long.class,String.class,String.class,long.class));
+			hkeys=lookup.findVirtual(ShardedJedis.class, "hkeys", MethodType.methodType(Set.class,String.class));
+			hlen=lookup.findVirtual(ShardedJedis.class, "hlen", MethodType.methodType(Long.class,String.class));
+			hmget=lookup.findVirtual(ShardedJedis.class, "hmget", MethodType.methodType(List.class,String.class,String[].class));
+			hmset=lookup.findVirtual(ShardedJedis.class, "hmset", MethodType.methodType(String.class,String.class,Map.class));
+			hset=lookup.findVirtual(ShardedJedis.class, "hset", MethodType.methodType(Long.class,String.class,String.class,String.class));
+			hsetnx=lookup.findVirtual(ShardedJedis.class, "hsetnx", MethodType.methodType(Long.class,String.class,String.class,String.class));
+			hvals=lookup.findVirtual(ShardedJedis.class, "hvals", MethodType.methodType(List.class,String.class));
+			incr=lookup.findVirtual(ShardedJedis.class, "incr", MethodType.methodType(Long.class,String.class));
+			incrBy=lookup.findVirtual(ShardedJedis.class, "incrBy", MethodType.methodType(Long.class,String.class,long.class));
+			lindex=lookup.findVirtual(ShardedJedis.class, "lindex", MethodType.methodType(String.class,String.class,long.class));
+			linsert=lookup.findVirtual(ShardedJedis.class, "linsert", MethodType.methodType(Long.class,String.class,LIST_POSITION.class,String.class,String.class));
+			llen=lookup.findVirtual(ShardedJedis.class, "llen", MethodType.methodType(Long.class,String.class));
+			lpop=lookup.findVirtual(ShardedJedis.class, "lpop", MethodType.methodType(String.class,String.class));
+			blpop=lookup.findVirtual(ShardedJedis.class, "blpop", MethodType.methodType(List.class,String.class));
+			blpopTimeout=lookup.findVirtual(ShardedJedis.class, "blpop", MethodType.methodType(List.class,int.class,String.class));
+			lpush=lookup.findVirtual(ShardedJedis.class, "lpush", MethodType.methodType(Long.class,String.class,String[].class));
+			try{
+				lpushx=lookup.findVirtual(ShardedJedis.class, "lpushx", MethodType.methodType(Long.class,String.class,String[].class));
+			}catch(Exception e){
+				lpushx=lookup.findVirtual(ShardedJedis.class, "lpushx", MethodType.methodType(Long.class,String.class,String.class));
+			}
+			lrange=lookup.findVirtual(ShardedJedis.class, "lrange", MethodType.methodType(List.class,String.class,long.class,long.class));
+			lrem=lookup.findVirtual(ShardedJedis.class, "lrem", MethodType.methodType(Long.class,String.class,long.class,String.class));
+			lset=lookup.findVirtual(ShardedJedis.class, "lset", MethodType.methodType(String.class,String.class,long.class,String.class));
+			ltrim=lookup.findVirtual(ShardedJedis.class, "ltrim", MethodType.methodType(String.class,String.class,long.class,long.class));
+			rpop=lookup.findVirtual(ShardedJedis.class, "rpop", MethodType.methodType(String.class,String.class));
+			rpush=lookup.findVirtual(ShardedJedis.class, "rpush", MethodType.methodType(Long.class,String.class,String[].class));
+			try{
+				rpushx=lookup.findVirtual(ShardedJedis.class, "rpushx", MethodType.methodType(Long.class,String.class,String[].class));
+			}catch(Exception e){
+				rpushx=lookup.findVirtual(ShardedJedis.class, "rpushx", MethodType.methodType(Long.class,String.class,String.class));
+			}
+			sadd=lookup.findVirtual(ShardedJedis.class, "sadd", MethodType.methodType(Long.class,String.class,String[].class));
+			scard=lookup.findVirtual(ShardedJedis.class, "scard", MethodType.methodType(Long.class,String.class));
+			set=lookup.findVirtual(ShardedJedis.class, "set", MethodType.methodType(String.class,String.class,String.class));
+			setNXXX_EXPX=lookup.findVirtual(ShardedJedis.class, "set", MethodType.methodType(String.class,String.class,String.class,String.class,String.class,long.class));
+			setbit=lookup.findVirtual(ShardedJedis.class, "setbit", MethodType.methodType(Boolean.class,String.class,long.class,boolean.class));
+			setex=lookup.findVirtual(ShardedJedis.class, "setex", MethodType.methodType(String.class,String.class,int.class,String.class));
+			setnx=lookup.findVirtual(ShardedJedis.class, "setnx", MethodType.methodType(Long.class,String.class,String.class));
+			setrange=lookup.findVirtual(ShardedJedis.class, "setrange", MethodType.methodType(Long.class,String.class,long.class,String.class));
+			sismember=lookup.findVirtual(ShardedJedis.class, "sismember", MethodType.methodType(Boolean.class,String.class,String.class));
+			smembers=lookup.findVirtual(ShardedJedis.class, "smembers", MethodType.methodType(Set.class,String.class));
+			sort=lookup.findVirtual(ShardedJedis.class, "sort", MethodType.methodType(List.class,String.class));
+			sortWITH_PARAMS=lookup.findVirtual(ShardedJedis.class, "sort", MethodType.methodType(List.class,String.class,SortingParams.class));
+			spop=lookup.findVirtual(ShardedJedis.class, "spop", MethodType.methodType(String.class,String.class));
+			srandmember=lookup.findVirtual(ShardedJedis.class, "srandmember", MethodType.methodType(String.class,String.class));
+			srem=lookup.findVirtual(ShardedJedis.class, "srem", MethodType.methodType(Long.class,String.class,String[].class));
+			substr=lookup.findVirtual(ShardedJedis.class, "substr", MethodType.methodType(String.class,String.class,int.class,int.class));
+			ttl=lookup.findVirtual(ShardedJedis.class, "ttl", MethodType.methodType(Long.class,String.class));
+			type=lookup.findVirtual(ShardedJedis.class, "type", MethodType.methodType(String.class,String.class));
+			zaddMULTI=lookup.findVirtual(ShardedJedis.class, "zadd", MethodType.methodType(Long.class,String.class,Map.class));
+			zadd=lookup.findVirtual(ShardedJedis.class, "zadd", MethodType.methodType(Long.class,String.class,double.class,String.class));
+			zcard=lookup.findVirtual(ShardedJedis.class, "zcard", MethodType.methodType(Long.class,String.class));
+			zcountDOUBLE=lookup.findVirtual(ShardedJedis.class, "zcount", MethodType.methodType(Long.class,String.class,double.class,double.class));
+			zcountSTRING=lookup.findVirtual(ShardedJedis.class, "zcount", MethodType.methodType(Long.class,String.class,String.class,String.class));
+			zincrby=lookup.findVirtual(ShardedJedis.class, "zincrby", MethodType.methodType(Double.class,String.class,double.class,String.class));
+			zrange=lookup.findVirtual(ShardedJedis.class, "zrange", MethodType.methodType(Set.class,String.class,long.class,long.class));
+			zrank=lookup.findVirtual(ShardedJedis.class, "zrank", MethodType.methodType(Long.class,String.class,String.class));
+			zrem=lookup.findVirtual(ShardedJedis.class, "zrem", MethodType.methodType(Long.class,String.class,String[].class));
+			zscore=lookup.findVirtual(ShardedJedis.class, "zscore", MethodType.methodType(Double.class,String.class,String.class));
+			zrangeByScoreDOUBLE_MINMAX=lookup.findVirtual(ShardedJedis.class, "zrangeByScore", MethodType.methodType(Set.class,String.class,double.class,double.class));
+			zrangeByScoreSTRING_MINMAX=lookup.findVirtual(ShardedJedis.class, "zrangeByScore", MethodType.methodType(Set.class,String.class,String.class,String.class));
+			zrangeByScoreDOUBLE_MINMAX_OFFSET_COUNT=lookup.findVirtual(ShardedJedis.class, "zrangeByScore", MethodType.methodType(Set.class,String.class,double.class,double.class,int.class,int.class));
+			zrangeByScoreSTRING_MINMAX_OFFSET_COUNT=lookup.findVirtual(ShardedJedis.class, "zrangeByScore", MethodType.methodType(Set.class,String.class,String.class,String.class,int.class,int.class));
+			zrangeByScoreWithScoresDOUBLE_MINMAX=lookup.findVirtual(ShardedJedis.class, "zrangeByScoreWithScores", MethodType.methodType(Set.class,String.class,double.class,double.class));
+			zrangeByScoreWithScoresSTRING_MINMAX=lookup.findVirtual(ShardedJedis.class, "zrangeByScoreWithScores", MethodType.methodType(Set.class,String.class,String.class,String.class));
+			zrangeByScoreWithScoresDOUBLE_MINMAX_OFFSET_COUNT=lookup.findVirtual(ShardedJedis.class, "zrangeByScoreWithScores", MethodType.methodType(Set.class,String.class,double.class,double.class,int.class,int.class));
+			zrangeByScoreWithScoresSTRING_MINMAX_OFFSET_COUNT=lookup.findVirtual(ShardedJedis.class, "zrangeByScoreWithScores", MethodType.methodType(Set.class,String.class,String.class,String.class,int.class,int.class));
+			zrangeWithScores=lookup.findVirtual(ShardedJedis.class, "zrangeWithScores", MethodType.methodType(Set.class,String.class,long.class,long.class));
+			zremrangeByRank=lookup.findVirtual(ShardedJedis.class, "zremrangeByRank", MethodType.methodType(Long.class,String.class,long.class,long.class));
+			zremrangeByScoreDOUBLE_MINMAX=lookup.findVirtual(ShardedJedis.class, "zremrangeByScore", MethodType.methodType(Long.class,String.class,double.class,double.class));
+			zremrangeByScoreSTRING_MINMAX=lookup.findVirtual(ShardedJedis.class, "zremrangeByScore", MethodType.methodType(Long.class,String.class,String.class,String.class));
+			zrevrange=lookup.findVirtual(ShardedJedis.class, "zrevrange", MethodType.methodType(Set.class,String.class,long.class,long.class));
+			zrevrangeByScoreDOUBLE_MINMAX=lookup.findVirtual(ShardedJedis.class, "zrevrangeByScore", MethodType.methodType(Set.class,String.class,double.class,double.class));
+			zrevrangeByScoreSTRING_MINMAX=lookup.findVirtual(ShardedJedis.class, "zrevrangeByScore", MethodType.methodType(Set.class,String.class,String.class,String.class));
+			zrevrangeByScoreDOUBLE_MINMAX_OFFSET_COUNT=lookup.findVirtual(ShardedJedis.class, "zrevrangeByScore", MethodType.methodType(Set.class,String.class,double.class,double.class,int.class,int.class));
+			zrevrangeByScoreSTRING_MINMAX_OFFSET_COUNT=lookup.findVirtual(ShardedJedis.class, "zrevrangeByScore", MethodType.methodType(Set.class,String.class,String.class,String.class,int.class,int.class));
+			zrevrangeByScoreWithScoresDOUBLE_MINMAX=lookup.findVirtual(ShardedJedis.class, "zrevrangeByScoreWithScores", MethodType.methodType(Set.class,String.class,double.class,double.class));
+			zrevrangeByScoreWithScoresSTRING_MINMAX=lookup.findVirtual(ShardedJedis.class, "zrevrangeByScoreWithScores", MethodType.methodType(Set.class,String.class,String.class,String.class));
+			zrevrangeByScoreWithScoresDOUBLE_MINMAX_OFFSET_COUNT=lookup.findVirtual(ShardedJedis.class, "zrevrangeByScoreWithScores", MethodType.methodType(Set.class,String.class,double.class,double.class,int.class,int.class));
+			zrevrangeByScoreWithScoresSTRING_MINMAX_OFFSET_COUNT=lookup.findVirtual(ShardedJedis.class, "zrevrangeByScoreWithScores", MethodType.methodType(Set.class,String.class,String.class,String.class,int.class,int.class));
+			zrevrangeWithScores=lookup.findVirtual(ShardedJedis.class, "zrevrangeWithScores", MethodType.methodType(Set.class,String.class,long.class,long.class));
+			zrevrank=lookup.findVirtual(ShardedJedis.class, "zrevrank", MethodType.methodType(Long.class,String.class,String.class));
+		} catch (NoSuchMethodException | IllegalAccessException e) {
+			e.printStackTrace();
+			throw new RedisException(e);
+		}
+	}
+}
