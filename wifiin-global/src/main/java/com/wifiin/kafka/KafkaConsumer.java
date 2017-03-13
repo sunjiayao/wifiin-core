@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -57,10 +56,6 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
      */
     private final AtomicBoolean asyncConsumerRecords=new AtomicBoolean(false);
     /**
-     * 每批消息处理完成，是否自动提交，默认是true
-     */
-    private final AtomicBoolean autoCommitAfterEachBatch=new AtomicBoolean(true);
-    /**
      * 是否正在执行
      */
     private final AtomicBoolean executing=new AtomicBoolean(false);
@@ -76,19 +71,19 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
      * 消费者线程。
      * 有一个线程拉取消息，如果asyncExecutors和asyncConsumerRecords都是false则只创建一个线程用来拉取消息；否则会创建parallism+1个线程，一个用来拉取消息，其余线程用来处理消息。
      */
-    private volatile ExecutorService consumerExecutor;
+    private volatile ThreadPoolExecutor consumerExecutor;
     /**
      * 提交线程
      */
     private volatile ExecutorService commitExecutor;
     /**
-     * 提交线程运行周期
-     */
-    private final long commitPeriod;
-    /**
      * 待提交数据
      */
     private volatile AtomicReference<Map<TopicPartition,OffsetAndMetadata>> commitData;
+    /**
+     * 获取kafka消息的超时时间
+     */
+    private long poolTimeout;
     /**
      * 消费者配置参数
      */
@@ -99,6 +94,10 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
      */
     private KafkaConsumerId id;
     /**
+     * 取消息的线程，consumer一旦启动就固定了
+     */
+    private Thread pollingThread;
+    /**
      * 构造器
      * @param props 初始化消费者的参数
      */
@@ -108,9 +107,8 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
         asyncExecutors.set((boolean)Help.convert(props.get(KafkaClient.ASYNC_EXECUTORS),false));
         asyncExecutorSubmit.set((boolean)Help.convert(props.get(KafkaClient.ASYNC_EXECUTOR_SUBMIT),false));
         asyncConsumerRecords.set((boolean)Help.convert(props.get(KafkaClient.ASYNC_CONSUMER_RECORDS),false));
-        autoCommitAfterEachBatch.set((boolean)Help.convert(props.get(KafkaClient.AUTO_COMMIT_AFTER_BATCH),true));
-        commitPeriod=(Long)Help.convert(props.get(KafkaClient.KAFKA_COMMIT_PERIOD_SECONDS),1L)*1000;
         parallism=(int)Help.convert(props.get(KafkaClient.CONSUMER_PARALLISM),Runtime.getRuntime().availableProcessors());
+        poolTimeout=((Number)Help.convert(config.get(KafkaClient.KAFKA_CONSUMER_POLL_TIMEOUT),1000L)).longValue();
         shutdownHook();
     }
     /**
@@ -139,34 +137,12 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
             if(consumerExecutor!=null){
                 consumerExecutor.shutdownNow();
             }
-            consumerExecutor=new ThreadPoolExecutor(1,threadCount,60,TimeUnit.SECONDS,new SynchronousQueue<>(),new ThreadPoolExecutor.CallerRunsPolicy());
+            consumerExecutor=new ThreadPoolExecutor(1,threadCount,60,TimeUnit.SECONDS,new SynchronousQueue<>(),new ThreadPoolExecutor.AbortPolicy());
         }
-        initCommitter();
         return this;
     }
-    private synchronized ExecutorService consumerExecutor(){
+    private synchronized ThreadPoolExecutor consumerExecutor(){
         return consumerExecutor;
-    }
-    /**
-     * 初始化kafka consumer提交
-     */
-    private void initCommitter(){
-        if(this.autoCommitAfterEachBatch.get()){
-            this.commitData=new AtomicReference<>(Maps.newConcurrentMap());
-            if(commitExecutor==null){
-                commitExecutor=Executors.newSingleThreadExecutor();
-            }
-            commitExecutor.submit(()->{
-                while(this.autoCommitAfterEachBatch.get()){
-                    synchronized(commitData){
-                        try{
-                            commitData.wait(commitPeriod);
-                        }catch(InterruptedException e){}
-                    }
-                    commitImmediately();
-                }
-            });
-        }
     }
     /**
      * 立即提交缓存的kafka消息，并清除缓存
@@ -414,14 +390,6 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
         return this;
     }
     /**
-     * 每一批消息处理完成后要不要自动提交。默认是自动提交
-     * @return
-     */
-    public KafkaConsumer autoCommitAfterEachBatch(boolean auto){
-        autoCommitAfterEachBatch.set(auto);
-        return this;
-    }
-    /**
      * 订阅消息
      * @param listener @see org.apache.kafka.clients.consumer.ConsumerRebalanceListener
      * @return 返回自身
@@ -462,10 +430,10 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
     private void executorConsumer(ConsumerRecords<KafkaMessageKey,?> records){
         boolean asyncExecutors=this.asyncExecutors.get();
         if(asyncExecutors){
-            consumerExecutor().submit(()->{
+            executeWithRejection(records,null,()->{
                 if(asyncExecutorSubmit.get()){
-                    executeExecutor((e)->{
-                        consumerExecutor().submit(()->{
+                    executeWithRejection(records,null,()->{
+                        executeExecutor((e)->{
                             execute(e,records);
                         });
                     });
@@ -474,11 +442,52 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
                         execute(e,records);
                     });
                 }
-            });
+            }); 
         }else{
             executeExecutor((e)->{
                 execute(e,records);
             });
+        }
+    }
+    /**
+     * 将参数包含的消息推回kafka
+     * @param records
+     */
+    private void pushBack(ConsumerRecords<KafkaMessageKey,?> records,ConsumerRecord<KafkaMessageKey,?> record){
+        if(record==null){
+            records.forEach((r)->{
+                pushBack(records,r);
+            });
+        }else{
+            String topic=record.topic();
+            KafkaMessageKey key=record.key();
+            Object value=record.value();
+            KafkaClient.producer(this.config).send(topic,key,value);
+        }
+    }
+    /**
+     * 执行runnable，如果runnable抛出了异常就把消息推回kafka
+     * @param records
+     * @param idx
+     * @param runnable
+     */
+    private void executeWithRejection(ConsumerRecords<KafkaMessageKey,?> records,ConsumerRecord<KafkaMessageKey,?> record,Runnable runnable){
+        boolean isPollingThread=pollingThread==Thread.currentThread();
+        try{
+            consumerExecutor().submit(()->{
+                runnable.run();
+                notifyConsumerExecutor();
+            });
+        }catch(Exception e){
+            log.warn("KafkaConsumer.rejected:"+e);
+            pushBack(records,record);
+            if(isPollingThread){
+                this.waitConsumerExecutor();
+            }
+        }finally{
+            if(!isPollingThread){
+                this.notifyConsumerExecutor();
+            }
         }
     }
     private void executeExecutor(Consumer<BiConsumer<ConsumerRecords<KafkaMessageKey,?>,ConsumerRecord<KafkaMessageKey,?>>> consumer){
@@ -501,29 +510,13 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
     private void execute(BiConsumer<ConsumerRecords<KafkaMessageKey,?>,ConsumerRecord<KafkaMessageKey,?>> executor,ConsumerRecords<KafkaMessageKey,?> records, boolean paralle){
         if(paralle){
             executeRecord(records,(rs,r)->{
-                consumerExecutor().submit(()->{
+                executeWithRejection(rs,r,()->{
                     executor.accept(rs,r);
-                    commit(r.topic(),r.offset(),r.partition());
                 });
             });
         }else{
             executeRecord(records,(rs,r)->{
                 executor.accept(rs,r);
-                commit(r.topic(),r.offset(),r.partition());
-            });
-        }
-    }
-    /**
-     * 成功的主题和offset，提交到一个AtomicReference<ConcurrentMap<TopicPartition,OffsetAndMetadata>>，异步向kafka broker提交
-     * @param topic
-     * @param offset
-     * @param partition
-     */
-    private void commit(String topic,long offset,int partition){
-        if(this.commitData!=null){
-            this.commitData.updateAndGet((Map<TopicPartition,OffsetAndMetadata> m)->{
-                m.put(new TopicPartition(topic,partition),new OffsetAndMetadata(offset));
-                return m;
             });
         }
     }
@@ -539,7 +532,7 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
      * @param pollTimeout 等待获取消息的超时时间，如果没有消息消费者就阻塞这么多毫秒数
      */
     private void executing(long pollTimeout){
-        for(;open.get() && executing.get();){
+        for(;open.get() && executing.get() && Help.isNotEmpty(executors);){
             try{
                 ConsumerRecords<KafkaMessageKey,?> records=super.poll(pollTimeout);
                 if(!records.isEmpty()){
@@ -559,9 +552,10 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
      * 对于进程重启、重置offset等行为，可能导致消息被重复消费，因此为了避免错误，消息处理器应实现为幂等的。
      * @param pollTimeout 等待获取消息的超时时间，如果没有消息消费者就阻塞这么多毫秒数
      */
-    public void execute(long pollTimeout){
+    private void execute(long pollTimeout){
         if(Help.isNotEmpty(executors) && !executing.getAndSet(true)){
             consumerExecutor().submit(()->{
+                pollingThread=Thread.currentThread();
                 try{
                     executing(pollTimeout);
                 }finally{
@@ -576,7 +570,7 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
      * @see KafkaClient.KAFKA_CONSUMER_POLL_TIMEOUT，默认是1000ms
      */
     public void execute(){
-        execute(((Number)Help.convert(config.get(KafkaClient.KAFKA_CONSUMER_POLL_TIMEOUT),1000L)).longValue());
+        execute(poolTimeout);
     }
     /**
      * 执行关闭的行为
@@ -619,5 +613,25 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
     public void close(){
         open.set(false);
         super.wakeup();
+    }
+    private void waitConsumerExecutor(){
+        waitOrNotifyConsumerExecutor((es)->{
+            try{
+                es.wait();
+            }catch(Exception e){}
+        });
+    }
+    private void notifyConsumerExecutor(){
+        waitOrNotifyConsumerExecutor((es)->{
+            try{
+                es.notifyAll();
+            }catch(Exception e){}
+        });
+    }
+    private void waitOrNotifyConsumerExecutor(Consumer<ExecutorService> consumer){
+        ExecutorService es=consumerExecutor();
+        synchronized(es){
+            consumer.accept(es);;
+        }
     }
 }

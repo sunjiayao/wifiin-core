@@ -75,10 +75,6 @@ public class KafkaClient{
      */
     public static final String ASYNC_CONSUMER_RECORDS="kafka.async.consumer.records";
     /**
-     * 每一批消息处理结束是否提交
-     */
-    public static final String AUTO_COMMIT_AFTER_BATCH="kafka.auto.commit.after.batch";
-    /**
      * 提交周期，单位是秒，默认是1秒
      */
     public static final String KAFKA_COMMIT_PERIOD_SECONDS="kafka.commit.period.seconds";

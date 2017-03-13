@@ -99,8 +99,10 @@ public class CellPhoneHomeAdapter implements CellPhoneHome{
     }
     private String[] query(String phone,boolean queryAll){
         String[] result=null;
+        int c=idx.getAndIncrement();
         for(int i=0,l=instances.size();i<l && (Help.isEmpty(result) || queryAll);i++){
-            CellPhoneHome home=instances.get(Math.abs(idx.getAndIncrement()%l));
+            CellPhoneHome home=instances.get(Math.abs(c%l));
+            c++;
             try{
                 result=home.query(phone);
                 resetFailedCount(home);
@@ -138,6 +140,7 @@ public class CellPhoneHomeAdapter implements CellPhoneHome{
     }
     public static void main(String[] args){
 //        ((CellPhoneHomeAdapter)CellPhoneHomeAdapter.getInstance()).query("13241886176",true);
-        ((CellPhoneHomeAdapter)CellPhoneHomeAdapter.getInstance()).query("1064855639287",true);
+        ((CellPhoneHomeAdapter)CellPhoneHomeAdapter.getInstance()).idx.set(Integer.MAX_VALUE);
+        ((CellPhoneHomeAdapter)CellPhoneHomeAdapter.getInstance()).query("1064855639287",false);
     }
 }
