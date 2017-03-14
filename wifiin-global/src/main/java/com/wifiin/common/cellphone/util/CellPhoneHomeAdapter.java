@@ -78,12 +78,21 @@ public class CellPhoneHomeAdapter implements CellPhoneHome{
     public static CellPhoneHome getInstance(){
         return instance;
     }
+    private static CellPhoneHome getLocalLibraryInstance(){
+        getInstance();
+        return instance.localLibrary;
+    }
+    public static String[] queryHomeByLocalLibrary(String phone){
+        return getLocalLibraryInstance().query(phone);
+    }
     public static String[] queryHome(String phone){
         return getInstance().query(phone);
     }
     private volatile List<CellPhoneHome> instances;
+    private volatile CellPhoneHome localLibrary;
     private AtomicInteger idx=new AtomicInteger(0);
     private CellPhoneHomeAdapter(){
+        localLibrary=new CellPhoneLocalLibrary();
         instances=ImmutableList.<CellPhoneHome>builder()
                 .add(new CellPhone360(),
                      new CellPhoneBaiFuBao(),
@@ -99,6 +108,14 @@ public class CellPhoneHomeAdapter implements CellPhoneHome{
     }
     private String[] query(String phone,boolean queryAll){
         String[] result=null;
+        try{
+            result = queryHomeByLocalLibrary(phone);
+            if(queryAll){
+                System.out.println(java.util.Arrays.toString(result));
+            }else{
+                return result;
+            }
+        }catch(Exception e){}
         int c=idx.getAndIncrement();
         for(int i=0,l=instances.size();i<l && (Help.isEmpty(result) || queryAll);i++){
             CellPhoneHome home=instances.get(Math.abs(c%l));
@@ -140,7 +157,7 @@ public class CellPhoneHomeAdapter implements CellPhoneHome{
     }
     public static void main(String[] args){
 //        ((CellPhoneHomeAdapter)CellPhoneHomeAdapter.getInstance()).query("13241886176",true);
-        ((CellPhoneHomeAdapter)CellPhoneHomeAdapter.getInstance()).idx.set(Integer.MAX_VALUE);
-        ((CellPhoneHomeAdapter)CellPhoneHomeAdapter.getInstance()).query("1064855639287",false);
+//        ((CellPhoneHomeAdapter)CellPhoneHomeAdapter.getInstance()).idx.set(Integer.MAX_VALUE);
+        ((CellPhoneHomeAdapter)CellPhoneHomeAdapter.getInstance()).query("13241886176");
     }
 }
