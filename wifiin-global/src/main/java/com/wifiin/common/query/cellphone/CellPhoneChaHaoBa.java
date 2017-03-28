@@ -1,12 +1,13 @@
-package com.wifiin.common.cellphone.util;
+package com.wifiin.common.query.cellphone;
 
-import com.wifiin.exception.CellPhoneHomeException;
+import com.wifiin.common.query.RemoteQuery;
+import com.wifiin.common.query.exception.QueryException;
 /**
  * 查号吧的response code是404，实际返回了内容，HttpClient不能处理
  * @author Running
  *
  */
-public class CellPhoneChaHaoBa implements CellPhoneHome{
+public class CellPhoneChaHaoBa implements RemoteQuery{
 
     @Override
     public String getURL(String phone){
@@ -22,7 +23,7 @@ public class CellPhoneChaHaoBa implements CellPhoneHome{
         int locationStart=response.indexOf("归属省份地区：");
         Object[] city=extractLocation(response,locationStart);
         if(city==null){
-            throw new CellPhoneHomeException("could not find location of cellphone from the response "+response);
+            throw new QueryException("could not find location of cellphone from the response "+response);
         }
         Object[] province=extractLocation(response,(Integer)city[1]);
         return new String[]{province!=null?(String)province[0]:"",(String)city[0]};

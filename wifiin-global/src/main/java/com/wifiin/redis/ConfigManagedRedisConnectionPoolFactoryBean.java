@@ -68,13 +68,20 @@ public class ConfigManagedRedisConnectionPoolFactoryBean implements FactoryBean<
         }
         
     }
+    private String configKey;
+    public ConfigManagedRedisConnectionPoolFactoryBean(){
+        this.configKey=SENTINEL_JEDIS_POOL_CONFIG;
+    }
+    public ConfigManagedRedisConnectionPoolFactoryBean(String key){
+        this.configKey=key;
+    }
     /**
      * 返回redis连接池实例
      * @return
      */
     @Override
     public RedisConnection getObject() throws Exception{
-        RedisSentinelConfig conf=ConfigManager.getInstance().getObject(SENTINEL_JEDIS_POOL_CONFIG,RedisSentinelConfig.class,new RedisSentinelConfig());
+        RedisSentinelConfig conf=ConfigManager.getInstance().getObject(configKey,RedisSentinelConfig.class,new RedisSentinelConfig());
         return new JedisConnection(new RedisSentinelPool(conf.sentinel,conf.password,conf.timeout,conf.poolConfig));
     }
     @Override

@@ -1,4 +1,4 @@
-package com.wifiin.common.cellphone.util;
+package com.wifiin.common.query;
 
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -13,17 +13,25 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.wifiin.common.CommonConstant;
+import com.wifiin.common.query.cellphone.CellPhone360;
+import com.wifiin.common.query.cellphone.CellPhoneBaiFuBao;
+import com.wifiin.common.query.cellphone.CellPhoneBaidu;
+import com.wifiin.common.query.cellphone.CellPhoneDaHanBank;
+import com.wifiin.common.query.cellphone.CellPhoneIteBlog;
+import com.wifiin.common.query.cellphone.CellPhoneLocalLibrary;
+import com.wifiin.common.query.cellphone.CellPhoneTaobao;
+import com.wifiin.common.query.cellphone.CellPhoneTenPay;
 import com.wifiin.config.ConfigManager;
 import com.wifiin.util.Help;
 
 
-public class CellPhoneHomeAdapter implements CellPhoneHome{
-    private static final Logger log=LoggerFactory.getLogger(CellPhoneHomeAdapter.class);
+public class RemoteQueryAdapter implements RemoteQuery{
+    private static final Logger log=LoggerFactory.getLogger(RemoteQueryAdapter.class);
     /**
      * 用来决定cellphonehome的控制参数数据来源，分别有zookeeper和properties文件
      * 如果来源是zookeeper，则使用{@link com.wifiin.config.ConfigManager}获得配置参数。<br/>
      * 如果来源是properties文件，则使用{@link com.wifiin.common.CommonConstant}从classpath:current.constant.properties文件获取配置参数。<br/>
-     * 配置参数的key是{@link com.wifiin.common.cellphone.util.CellPhoneHomeAdapter#FAILED_COUNT_TO_SHIFT}，类型是int。
+     * 配置参数的key是{@link com.wifiin.common.query.RemoteQueryAdapter#FAILED_COUNT_TO_SHIFT}，类型是int。
      * 使用方法如下：<br/>
      * java -Dfailed.count.shift.src=CONSTANT_PROPERTIES,取值有CONSTANT_PROPERTIES和CONFIG_MANAGER，默认是CONSTANT_PROPERTIES
      */
@@ -36,7 +44,7 @@ public class CellPhoneHomeAdapter implements CellPhoneHome{
      * 默认的错误累计次数，默认是1
      */
     private static final int DEFAULT_FAILED_CONT_TO_SHIFT=1;
-    private Map<CellPhoneHome,AtomicInteger> failedCellPhoneHomeQueryCountMap=new IdentityHashMap<>();
+    private Map<RemoteQuery,AtomicInteger> failedCellPhoneHomeQueryCountMap=new IdentityHashMap<>();
     private enum FailedCountShiftConfSrc{
         CONFIG_MANAGER {
             @Override
@@ -74,61 +82,37 @@ public class CellPhoneHomeAdapter implements CellPhoneHome{
     private int failedCountToShift(){
         return FailedCountShiftConfSrc.getFailedCountToShift();
     }
-    private static final CellPhoneHomeAdapter instance=new CellPhoneHomeAdapter();
-    public static CellPhoneHome getInstance(){
-        return instance;
-    }
-    private static CellPhoneHome getLocalLibraryInstance(){
-        getInstance();
-        return instance.localLibrary;
-    }
-    public static String[] queryHomeByLocalLibrary(String phone){
-        return getLocalLibraryInstance().query(phone);
-    }
-    public static String[] queryHome(String phone){
-        return getInstance().query(phone);
-    }
-    private volatile List<CellPhoneHome> instances;
-    private volatile CellPhoneHome localLibrary;
+    private volatile List<RemoteQuery> instances;
+    private volatile RemoteQuery localLibrary;
     private AtomicInteger idx=new AtomicInteger(0);
-    private CellPhoneHomeAdapter(){
-        localLibrary=new CellPhoneLocalLibrary();
-        instances=ImmutableList.<CellPhoneHome>builder()
-                .add(new CellPhone360(),
-                     new CellPhoneBaiFuBao(),
-                     new CellPhoneTaobao(),
-                     new CellPhoneBaidu(),
-                     new CellPhoneDaHanBank(),
-                     new CellPhoneIteBlog(),
-                     new CellPhoneTenPay())
-                .build();
-        instances.stream().forEach((h)->{
-            failedCellPhoneHomeQueryCountMap.put(h,new AtomicInteger());
-        });
+    RemoteQueryAdapter(RemoteQuery local,RemoteQuery... others){
+        localLibrary=local;
+        instances=ImmutableList.<RemoteQuery>builder().add(others).build();
+    }
+    private String[] queryLocalLibrary(String phone){
+        try{
+            return localLibrary.query(phone);
+        }catch(Exception e){
+            return null;
+        }
     }
     private String[] query(String phone,boolean queryAll){
-        String[] result=null;
-        try{
-            result = queryHomeByLocalLibrary(phone);
-            if(queryAll){
-                System.out.println(java.util.Arrays.toString(result));
-            }else{
-                return result;
-            }
-        }catch(Exception e){}
-        int c=idx.getAndIncrement();
-        for(int i=0,l=instances.size();i<l && (Help.isEmpty(result) || queryAll);i++){
-            CellPhoneHome home=instances.get(Math.abs(c%l));
-            c++;
-            try{
-                result=home.query(phone);
-                resetFailedCount(home);
-                if(queryAll){
-                    System.out.println(java.util.Arrays.toString(result));
+        String[] result=queryLocalLibrary(phone);
+        if(Help.isEmpty(result) || queryAll){
+            int c=idx.getAndIncrement();
+            for(int i=0,l=instances.size();i<l && (Help.isEmpty(result) || queryAll);i++){
+                RemoteQuery home=instances.get(Math.abs(c%l));
+                c++;
+                try{
+                    result=home.query(phone);
+                    resetFailedCount(home);
+                    if(queryAll){
+                        System.out.println(java.util.Arrays.toString(result));
+                    }
+                }catch(Exception e){
+                    log.warn("CellPhoneHome.query:"+home+';'+phone,e);
+                    shift(i,home);
                 }
-            }catch(Exception e){
-                log.warn("CellPhoneHome.query:"+home+';'+phone,e);
-                shift(i,home);
             }
         }
         return result;
@@ -136,14 +120,16 @@ public class CellPhoneHomeAdapter implements CellPhoneHome{
     public String[] query(String phone){
         return query(phone,false);
     }
-    private AtomicInteger failedCount(CellPhoneHome home){
-        return failedCellPhoneHomeQueryCountMap.get(home);
+    private AtomicInteger failedCount(RemoteQuery home){
+        return failedCellPhoneHomeQueryCountMap.computeIfAbsent(home,(h)->{
+            return new AtomicInteger(0);
+        });
     }
-    private void resetFailedCount(CellPhoneHome home){
+    private void resetFailedCount(RemoteQuery home){
         failedCount(home).set(0);
     }
     private AtomicBoolean shifting=new AtomicBoolean(false);
-    private void shift(int idx,CellPhoneHome home){
+    private void shift(int idx,RemoteQuery home){
         AtomicInteger atomicCount=failedCount(home);
         if(idx<instances.size()-1 && atomicCount.incrementAndGet()>=this.failedCountToShift() && shifting.compareAndSet(false,true)){
             List list=Lists.newArrayList(instances);
@@ -158,6 +144,5 @@ public class CellPhoneHomeAdapter implements CellPhoneHome{
     public static void main(String[] args){
 //        ((CellPhoneHomeAdapter)CellPhoneHomeAdapter.getInstance()).query("13241886176",true);
 //        ((CellPhoneHomeAdapter)CellPhoneHomeAdapter.getInstance()).idx.set(Integer.MAX_VALUE);
-        ((CellPhoneHomeAdapter)CellPhoneHomeAdapter.getInstance()).query("13241886176");
     }
 }

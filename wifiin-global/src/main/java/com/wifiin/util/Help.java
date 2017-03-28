@@ -24,9 +24,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -35,7 +32,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -1180,186 +1176,7 @@ public class Help {
 	public static interface InstanceCreator{
 		public Object create(Object... args) throws Exception;
 	}
-	/**
-     * 从指定文件读取全部文本内容
-     * @param src
-     * @return
-     * @throws UnsupportedEncodingException
-     * @throws IOException
-     */
-    public static String loadFileText(File src) throws UnsupportedEncodingException, IOException{
-        return loadFileText(src,CommonConstant.DEFAULT_CHARSET_NAME);
-    }
-    /**
-     * 从指定文件读取全部文本内容
-     * @param src
-     * @param charset
-     * @return
-     * @throws IOException
-     */
-    public static String loadFileText(File src,Charset charset) throws IOException{
-        return new String(loadFileBytes(src),charset);
-    }
-    /**
-     * 从指定文件读取全部文本内容
-     * @param src
-     * @param charset
-     * @return
-     * @throws UnsupportedEncodingException
-     * @throws IOException
-     */
-    public static String loadFileText(File src, String charset) throws UnsupportedEncodingException, IOException{
-        return new String(loadFileBytes(src),charset);
-    }
-    /**
-     * 从指定文件读取全部字节
-     * @param src
-     * @return
-     * @throws IOException
-     */
-    public static byte[] loadFileBytes(File src) throws IOException{
-        return loadFileBytes(src.toPath());
-    }
-    /**
-     * 从指定文件读取全部文本内容
-     * @param src
-     * @param charset
-     * @return
-     * @throws IOException
-     */
-    public static String loadFileText(Path src, Charset charset) throws IOException{
-        return new String(loadFileBytes(src),charset);
-    }
-    /**
-     * 从指定文件读取全部文本内容
-     * @param src
-     * @param charset
-     * @return
-     * @throws UnsupportedEncodingException
-     * @throws IOException
-     */
-    public static String loadFileText(Path src,String charset) throws UnsupportedEncodingException, IOException{
-        return new String(loadFileBytes(src),charset);
-    }
-    /**
-     * 从指定文件读取全部文本内容
-     * @param src
-     * @return
-     * @throws UnsupportedEncodingException
-     * @throws IOException
-     */
-    public static String loadFileText(Path src) throws UnsupportedEncodingException, IOException{
-        return loadFileText(src,CommonConstant.DEFAULT_CHARSET_NAME);
-    }
-    /**
-     * 从指定文件读取全部字节
-     * @param src
-     * @return
-     * @throws IOException
-     */
-    public static byte[] loadFileBytes(Path src) throws IOException{
-        return Files.readAllBytes(src);
-    }
-	/**
-	 * 从reader加载Properties数据
-	 * @param reader 字符流
-	 * @return
-	 * @throws IOException Properties
-	 * @throws 
-	 * @exception
-	 */
-	public static Properties loadProperties(Reader reader) throws IOException{
-		Properties props=new Properties();
-		props.load(reader);
-		return props;
-	}
-	/**
-	 * 以默认字符集从in加载Properties
-	 * @param in 字节流
-	 * @return
-	 * @throws IOException Properties
-	 * @throws 
-	 * @exception
-	 */
-	public static Properties loadProperties(InputStream in) throws IOException{
-		Properties props=new Properties();
-		props.load(in);
-		return props;
-	}
-	/**
-	 * 以charset指定的字符集从in加载Properties
-	 * @param in
-	 * @param charset
-	 * @return
-	 * @throws IOException Properties
-	 * @throws 
-	 * @exception
-	 */
-	public static Properties loadProperties(InputStream in, String charset) throws IOException{
-		return loadProperties(new InputStreamReader(in, charset));
-	}
-	/**
-	 * 从file加载Properties
-	 * @param file 保存着Properties数据的文件
-	 * @return 从文件加载的Properties对象
-	 * @throws FileNotFoundException
-	 * @throws IOException Properties
-	 */
-	public static Properties loadProperties(File file) throws FileNotFoundException, IOException{
-		InputStream in=null;
-		try{
-			in=new FileInputStream(file);
-			return loadProperties(in);
-		}finally{
-			if(in!=null){
-				in.close();
-			}
-		}
-	}
-	/**
-	 * 从file以charset指定字符集加载Properties
-	 * @param file 保存着Properies数据的文件
-	 * @param charset file的字符集
-	 * @return 从file加载的Properties对象
-	 * @throws IOException Properties
-	 */
-	public static Properties loadProperties(File file, String charset) throws IOException{
-		InputStream in=null;
-		try{
-			in=new FileInputStream(file);
-			return loadProperties(in,charset);
-		}finally{
-			if(in!=null){
-				in.close();
-			}
-		}
-	}
-	/**
-	 * 将properties写入writer
-	 * @param properties
-	 * @param writer
-	 * @throws IOException
-	 */
-	public static void storeProperties(Properties properties,Writer writer) throws IOException{
-		properties.store(writer,null);
-	}
-	/**
-	 * 以默认字符集将properties写入输出流
-	 * @throws IOException 
-	 * */
-	public static void storeProperties(Properties properties, OutputStream out) throws IOException{
-		properties.store(out, null);
-	}
-	/**
-	 * 将properties写入out，字符集是charset
-	 * @param properties
-	 * @param out
-	 * @param charset
-	 * @throws IOException
-	 */
-	public static void storeProperties(Properties properties, OutputStream out, String charset) throws IOException{
-		properties.store(new OutputStreamWriter(out, charset), null);
-	}
+	
 	/**
 	 * 去掉src开头和结尾的空白字符，包括所有小于\u0020的字符和\t\n\u000B\f\r\u00A0
 	 * @param src 需过滤的字符串
@@ -2058,7 +1875,37 @@ public class Help {
     public static String getIpStringFromBytes(byte[] ip) {
     	return ""+(ip[0]&0xff)+'.'+(ip[1]&0xff)+'.'+(ip[2]&0xff)+'.'+(ip[3]&0xff);
     }
-    
+    private static final char[] HEXBUF=new char[]{'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+    /**
+     * 把src转成16进制字符串
+     * @param src
+     * @return
+     */
+    public static String bytes2hex(byte[] src){
+        int mask=0xf;
+        int l=src.length;
+        char[] hex=new char[l*2];
+        for(int i=0,hexIdx=0;i<l;i++){
+            byte b=src[i];
+            hex[hexIdx++]=HEXBUF[(b>>>4)&mask];
+            hex[hexIdx++]=HEXBUF[b&mask];
+        }
+        return new String(hex);
+    }
+    /**
+     * 把16进制字符串转成字节数组
+     * @param hex
+     * @return
+     */
+    public static byte[] hex2bytes(String hex){
+        byte[] result=new byte[hex.length()/2];
+        for(int i=0,l=result.length;i<l;i++){
+            int start=i*2;
+            int end=start+2;
+            result[i]=(byte)Short.parseShort(hex.substring(start,end),16);
+        }
+        return result;
+    }
     public static byte[] transferLongToByteArray(long value){
         byte[] buf=new byte[8];
         long mask=0xffL;

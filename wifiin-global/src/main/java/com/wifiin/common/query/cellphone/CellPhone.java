@@ -1,5 +1,6 @@
-package com.wifiin.common.cellphone.util;
+package com.wifiin.common.query.cellphone;
 
+import com.wifiin.common.query.RemoteQueryAdapterHolder;
 import com.wifiin.constant.TelecomOperator;
 
 public class CellPhone{
@@ -14,7 +15,7 @@ public class CellPhone{
     private String province;
     private String city;
     private void home(){
-        String[] home=CellPhoneHomeAdapter.queryHome(phone);
+        String[] home=RemoteQueryAdapterHolder.CELL_PHONE_HOME.query(phone);
         province=home[0];
         city=home[1];
     }

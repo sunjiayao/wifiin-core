@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Maps;
 import com.wifiin.exception.ConstantLoadingException;
 import com.wifiin.util.Help;
+import com.wifiin.util.io.IOUtil;
 
 /**
  * 在工程类路径的根下查找文件名以constant.properties结尾的文件<br/>
@@ -236,7 +237,7 @@ public final class CommonConstant {
 			            JarEntry entry=entries.nextElement();
 			            if(!entry.isDirectory() && entry.getName().endsWith(constantFileName)){
 			                try(InputStream jarIn=jar.getInputStream(entry)){
-			                    properties.putAll(Help.loadProperties(jarIn,DEFAULT_CHARSET_NAME));
+			                    properties.putAll(IOUtil.loadProperties(jarIn,DEFAULT_CHARSET_NAME));
 			                }
 			            }
 			        }
@@ -244,7 +245,7 @@ public final class CommonConstant {
 			}else{
 			    for(File props:new File(url.toURI()).listFiles()){
 	                if(props.isFile() && props.getName().endsWith(constantFileName)){
-	                    properties.putAll(Help.loadProperties(props, DEFAULT_CHARSET_NAME));
+	                    properties.putAll(IOUtil.loadProperties(props, DEFAULT_CHARSET_NAME));
 	                }
 	            }
 			}
@@ -276,6 +277,7 @@ public final class CommonConstant {
     public static void setProperties(Properties props){
 	    for(Map.Entry entry:props.entrySet()){
             CONSTANTS.put((String)entry.getKey(),(String)entry.getValue());
+            log.info("CommonConstant.setProperty:"+entry);
         }
 	}
 	static{

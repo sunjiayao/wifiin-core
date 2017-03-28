@@ -1,10 +1,12 @@
-package com.wifiin.common.cellphone.util;
+package com.wifiin.common.query.cellphone;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 
-public class CellPhoneTenPay implements CellPhoneHome{
+import com.wifiin.common.query.RemoteQuery;
+
+public class CellPhoneTenPay implements RemoteQuery{
 
     @Override
     public String getURL(String phone){

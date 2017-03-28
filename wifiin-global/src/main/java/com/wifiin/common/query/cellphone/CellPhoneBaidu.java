@@ -1,13 +1,14 @@
-package com.wifiin.common.cellphone.util;
+package com.wifiin.common.query.cellphone;
 
 import java.util.List;
 import java.util.Map;
 
 import com.wifiin.common.CommonConstant;
 import com.wifiin.common.GlobalObject;
+import com.wifiin.common.query.RemoteQuery;
 import com.wifiin.util.Help;
 
-public class CellPhoneBaidu implements CellPhoneHome{
+public class CellPhoneBaidu implements RemoteQuery{
 
     @Override
     public String getURL(String phone){

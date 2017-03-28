@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ - Copyright 1999-2011 Alibaba Group.
+ -  
+ - Licensed under the Apache License, Version 2.0 (the "License");
+ - you may not use this file except in compliance with the License.
+ - You may obtain a copy of the License at
+ -  
+ -      http://www.apache.org/licenses/LICENSE-2.0
+ -  
+ - Unless required by applicable law or agreed to in writing, software
+ - distributed under the License is distributed on an "AS IS" BASIS,
+ - WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ - See the License for the specific language governing permissions and
+ - limitations under the License.
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc" 
+    xmlns:dubbo="http://code.alibabatech.com/schema/dubbo" 
+    xsi:schemaLocation="http://www.springframework.org/schema/beans 
+  http://www.springframework.org/schema/beans/spring-beans.xsd  
+  http://www.springframework.org/schema/context  
+  http://www.springframework.org/schema/context/spring-context.xsd 
+  http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd 
+  ">
+    <context:component-scan base-package="com.wifiin.dubbo.impl.**" use-default-filters="false">
+        <context:include-filter type="aspectj" expression="com.wifiin.dubbo.impl.TestAccessLogAImpl"/>
+        <context:include-filter type="aspectj" expression="com.wifiin.dubbo.impl.TestAccessLogBImpl"/>
+        <context:include-filter type="aspectj" expression="com.wifiin.dubbo.impl.TestAccessLogCImpl"/>
+        <!-- 
+         -->
+        
+    </context:component-scan>
+    <dubbo:provider protocol="injvm" delay="-1" retries="0" />
+    <dubbo:service interface="com.wifiin.dubbo.TestAccessLogA" ref="testAccessLogA" filter="providerLog"/>
+    <dubbo:service interface="com.wifiin.dubbo.TestAccessLogB" ref="testAccessLogB" filter="providerLog" />
+    <dubbo:service interface="com.wifiin.dubbo.TestAccessLogC" ref="testAccessLogC" filter="providerLog"/>
+    <!-- 
+     -->
+    
+    <dubbo:consumer injvm="true" retries="0" />
+    <dubbo:reference id="testAccessLogAClient" interface="com.wifiin.dubbo.TestAccessLogA" filter="consumerLog"/>
+    <dubbo:reference id="testAccessLogBClient" interface="com.wifiin.dubbo.TestAccessLogB" filter="consumerLog"/>
+    <dubbo:reference id="testAccessLogCClient" interface="com.wifiin.dubbo.TestAccessLogC" filter="consumerLog"/>
+    <!-- 
+     -->
+</beans>

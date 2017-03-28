@@ -71,7 +71,7 @@ public class KafkaMessageKey<K> implements Serializable{
         }
     }
     /**
-     * kafka在没有key的时候会随机把消息发到某个partition，为了达到这个效果，在k为null时会自动用消息发送方的ip/进程号、线程号、当前时间生成一个key。
+     * kafka在没有key的时候会随机把消息发到某个partition，为了达到这个效果，在k为null时会自动用消息发送方的mac/进程号、线程号、当前时间生成一个key。
      * K类型必须实现hashCode和equals
      */
     @Override

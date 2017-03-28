@@ -82,24 +82,4 @@ public class Encryptor extends EnDecryptionUtil{
     	encrypt(src,dst,base64key?Base64.decodeBase64(key):key.getBytes(CommonConstant.DEFAULT_CHARSET_NAME));
     }
     
-    public static void main(String[] args) throws IOException {
-    	String uuid=UUID.randomUUID().toString();
-    	
-    	String s="";
-    	long ms=System.currentTimeMillis();
-    	s=encrypt("xbcnt123",uuid);
-    	System.out.println(System.currentTimeMillis()-ms);
-    	ms=System.currentTimeMillis();
-//    	for(int i=0;i<100000;i++){
-//    		encrypt("xbcnt123",uuid);
-//    	}
-    	System.out.println(System.currentTimeMillis()-ms);
-//    	System.out.println(uuid);
-//    	System.out.println(MessageDigestUtil.md5Base64(uuid).length()+"  "+md5(uuid).length()+"  "+uuid.replace("-","").length());
-		System.out.println(s+"  "+s.length());
-		System.out.println(Decryptor.decrypt(s,uuid));
-		System.out.println(Base64.encodeBase64String(new byte[]{(byte)128}));
-		System.out.println(encrypt(singleUUIDBytes(),singleUUIDBytes()).length);
-		System.out.println(isBase64Key("gA=="));
-	}
 }

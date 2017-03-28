@@ -1,6 +1,8 @@
-package com.wifiin.common.cellphone.util;
+package com.wifiin.common.query.cellphone;
 
-public class CellPhoneTaobao implements CellPhoneHome{
+import com.wifiin.common.query.RemoteQuery;
+
+public class CellPhoneTaobao implements RemoteQuery{
 
     @Override
     public String getURL(String phone){

@@ -3,7 +3,9 @@ package com.wifiin.common;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
+import java.text.MessageFormat;
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,14 +19,17 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.google.common.collect.Maps;
 import com.wifiin.config.ConfigManager;
 import com.wifiin.util.Help;
 import com.wifiin.util.ShutdownHookUtil;
+import com.wifiin.util.kryo.ThreadLocalKryo;
 
 /**
  * 此类包含一些全局对象
@@ -101,7 +106,8 @@ public final class GlobalObject {
                         }
                         
                     });
-                    jsonMapper.registerModule(module); 
+                    jsonMapper.registerModule(module);
+                    jsonMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
 				}
 			}
 		}
@@ -128,7 +134,7 @@ public final class GlobalObject {
 	    if(fstConf==null){
 	        synchronized(FSTConfiguration.class){
 	            if(fstConf==null){
-	                fstConf=FSTConfiguration.createJsonNoRefConfiguration();
+	                fstConf=FSTConfiguration.createDefaultConfiguration();
 	            }
 	        }
 	    }
@@ -401,5 +407,13 @@ public final class GlobalObject {
               sdkPartnerUserId=RandomStringUtils.random(16,"0123456789abcdef");
             }
         }
+    }
+    public static void main(String[] args){
+        Test t=new Test();
+        byte[] result=GlobalObject.getFSTConfiguration().asByteArray(t);
+        System.out.println(result.length);
+        System.out.println(ThreadLocalKryo.kryo().writeClassAndObject(t).length);
+        String txt=new String(result);
+        System.out.println(txt);
     }
 }

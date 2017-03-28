@@ -1,10 +1,11 @@
-package com.wifiin.common.cellphone.util;
+package com.wifiin.common.query.cellphone;
 
 import java.util.Map;
 
 import com.wifiin.common.GlobalObject;
+import com.wifiin.common.query.RemoteQuery;
 
-public class CellPhoneIteBlog implements CellPhoneHome{
+public class CellPhoneIteBlog implements RemoteQuery{
 
     @Override
     public String getURL(String phone){

@@ -98,9 +98,15 @@ public class EnhancedSymmetricEncryptor {
 	public static final String KEY_GENERATION_ALG_PBKDF2WithHmacSHA256 = MessageDigestUtil.PBKDF2_HMAC_SHA256;//"PBKDF2WithHmacSHA256";
     public static final String KEY_GENERATION_ALG_PBKDF2WithHmacSHA384 = MessageDigestUtil.PBKDF2_HMAC_SHA384;//"PBKDF2WithHmacSHA384";
     public static final String KEY_GENERATION_ALG_PBKDF2WithHmacSHA512 = MessageDigestUtil.PBKDF2_HMAC_SHA512;//"PBKDF2WithHmacSHA512";
+    public static final String KEY_GENERATION_ALG_PBKDF2WithHmacSHA1024 = MessageDigestUtil.PBKDF2_HMAC_SHA1024;//"PBKDF2WithHmacSHA1024";
 	private static final byte[] salt={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xA, 0xB, 0xC, 0xD, 0xE, 0xF };
 	private static final byte[] ivbytes={ 0xA, 1, 0xB, 5, 4, 0xF, 7, 9, 0x17, 3, 1, 6, 8, 0xC, 0xD, 91 };
-	private static final String secureAlg="SHA1PRNG";
+	public static final String SHA1PRNG="SHA1PRNG";
+	public static final String SHA256PRNG="SHA256PRNG";
+	public static final String SHA384PRNG="SHA384PRNG";
+	public static final String SHA512PRNG="SHA512PRNG";
+	public static final String SHA1024PRNG="SHA1024PRNG";
+	private static final String secureAlg=SHA1PRNG;
 	private static final String padding="PKCS7";
 	public static final String ECB_MODE="ECB";
 	public static final String CBC_MODE="CBC";
@@ -215,7 +221,7 @@ public class EnhancedSymmetricEncryptor {
             }
         }
         public void setIv(String iv) throws UnsupportedEncodingException{
-            if(Help.isNotEmpty(salt)){
+            if(Help.isNotEmpty(iv)){
                 this.iv=iv.getBytes(charset);
             }
         }
@@ -305,8 +311,15 @@ public class EnhancedSymmetricEncryptor {
 //		}
 //		System.out.println(l+"    "+l/10000.0);
 //		System.out.println(encrypt.length()+"    "+encrypt);
-//		System.out.println(getAES("r1pcL0e9jJfur0Zv","Pwwgspjh0ukzupxy","zifteQKXAqzlaJ5w","UTF-8").decryptFromBase64("69gRLRUPO3Kz0evAr0XAbw=="));
+//		System.out.println(java.util.Arrays.toString(getAES("r1pcL0e9jJfur0Zv","Pwwgspjh0ukzupxy","zifteQKXAqzlaJ5w","UTF-8").encrypt("helloworld".getBytes())));
+//		System.out.println(java.util.Arrays.toString(getAES("r1pcL0e9jJfur0Zv","Pwwgspjh0ukzupxy","zifteQKXAqzlaJ5w","UTF-8").encrypt("dlrowolleh".getBytes())));
 //		System.out.println("4bKD8T/2zyzebKxCH0pMyAv0xi6zLJSatUOskOF3fY0ty+itTEdzMlhY9/iJqbrM".length());
 //		System.out.println(getAES("19hlcHCh13070t43","k760jv5Ab1HdPffs","yx30x0j603N9zjgm","UTF-8").decryptFromBase64("vAu8j0fo3auHBxUzvaxxrQ=="));
+	    Cipher cipher = Cipher.getInstance("AES/ECB/PKCS7Padding");
+	    cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec("r1pcL0e9jJfur0Zv".getBytes(), "AES"));
+	    byte[] buf= cipher.doFinal("helloworld".getBytes());
+	    System.out.println(java.util.Arrays.toString(buf));
+	    buf=getAES("r1pcL0e9jJfur0Zv").encrypt("helloworld".getBytes());
+	    System.out.println(java.util.Arrays.toString(buf));
 	}
 }

@@ -26,7 +26,7 @@ public class RPCCommonResponse implements RPCResponse,Serializable{
     private int status;
     public RPCCommonResponse(){}
     public RPCCommonResponse(int status){
-        setStatus(status);
+        this.status=status;
     }
     @Override
     public void setStatus(int status){

@@ -218,7 +218,7 @@ public class Localhost {
 	    long mac=0;
         localMacBytes=getLocalMacInBytes0();
         for(int i=0,l=localMacBytes.length;i<l;i++){
-            mac=(mac<<8)|localMacBytes[i];
+            mac=(mac<<8)|(0xff & localMacBytes[i]);
         }
         return mac;
 	}

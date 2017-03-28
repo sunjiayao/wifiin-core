@@ -1,11 +1,12 @@
-package com.wifiin.common.cellphone.util;
+package com.wifiin.common.query.cellphone;
 
 import java.util.Map;
 
 import com.google.common.collect.Maps;
 import com.wifiin.common.GlobalObject;
+import com.wifiin.common.query.RemoteQuery;
 
-public class CellPhoneDaHanBank implements CellPhoneHome{
+public class CellPhoneDaHanBank implements RemoteQuery{
     private static final String PROVINCE_ID="provinceID";
     private static final Map<Integer,String> PROVINCE_MAP;
     static{

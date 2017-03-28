@@ -1,4 +1,4 @@
-package com.wifiin.common.cellphone.util;
+package com.wifiin.common.query;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -7,22 +7,22 @@ import java.security.NoSuchAlgorithmException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.wifiin.exception.CellPhoneHomeException;
+import com.wifiin.common.query.exception.QueryException;
 import com.wifiin.util.net.http.HttpClient;
 import com.wifiin.util.regex.RegexUtil;
 import com.wifiin.util.text.template.TextTemplateFormatter;
 import com.wifiin.util.text.template.TextTemplateFormatterType;
 
-public interface CellPhoneHome{
-    public static final Logger log=LoggerFactory.getLogger(CellPhoneHome.class);
+public interface RemoteQuery{
+    public static final Logger log=LoggerFactory.getLogger(RemoteQuery.class);
     public static final TextTemplateFormatter LOG_FORMATTER=TextTemplateFormatterType.PLAIN_TEXT.formatter("CellPhoneHome:request:{};{}","{","}");
     public static final int DEFAULT_TIMEOUT=3000;
     /**
-     * 得到查询手机归属地的url
-     * @param phone
+     * 得到查询的url
+     * @param param  查询的参数
      * @return
      */
-    public String getURL(String phone);
+    public String getURL(String param);
     /**
      * 对端响应字符集
      * @return
@@ -32,14 +32,14 @@ public interface CellPhoneHome{
     }
     /**
      * 请求查询手机归属地的服务
-     * @param phone
+     * @param param
      * @return
      * @throws KeyManagementException
      * @throws NoSuchAlgorithmException
      * @throws IOException
      */
-    public default String request(String phone) throws KeyManagementException, NoSuchAlgorithmException, IOException{
-        String url=getURL(phone);
+    public default String request(String param) throws KeyManagementException, NoSuchAlgorithmException, IOException{
+        String url=getURL(param);
         HttpClient http=new HttpClient(url);
         http.setConnectTimeout(DEFAULT_TIMEOUT);
         http.setConnectionRequestTimeout(DEFAULT_TIMEOUT);
@@ -64,11 +64,11 @@ public interface CellPhoneHome{
      * @param phone
      * @return
      */
-    public default String[] query(String phone){
+    public default String[] query(String param){
         try{
-            return parseResponse(request(phone));
+            return parseResponse(request(param));
         }catch(Exception e){
-            throw new CellPhoneHomeException(e);
+            throw new QueryException(e);
         }
     }
 }

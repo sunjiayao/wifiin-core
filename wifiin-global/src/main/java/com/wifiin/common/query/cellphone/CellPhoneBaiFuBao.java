@@ -1,10 +1,11 @@
-package com.wifiin.common.cellphone.util;
+package com.wifiin.common.query.cellphone;
 
 import java.util.Map;
 
 import com.wifiin.common.GlobalObject;
+import com.wifiin.common.query.RemoteQuery;
 
-public class CellPhoneBaiFuBao implements CellPhoneHome{
+public class CellPhoneBaiFuBao implements RemoteQuery{
     @Override
     public String getURL(String phone){
         return "https://www.baifubao.com/callback?cmd=1059&callback=iteblog&phone="+phone;

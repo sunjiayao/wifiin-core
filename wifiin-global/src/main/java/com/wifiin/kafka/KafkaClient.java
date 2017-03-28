@@ -163,7 +163,7 @@ public class KafkaClient{
      * @return
      */
     static String createId(){
-        return Localhost.getLocalIpInHex()+'-'+ProcessUtil.getPidHex()+'-'+Long.toHexString(Thread.currentThread().getId())+'-'+getCurrentDateTime();
+        return Localhost.getLocalMacLong()+'-'+ProcessUtil.getPidHex()+'-'+Long.toHexString(Thread.currentThread().getId())+'-'+getCurrentDateTime();
     }
     public static String generateTopic(String app,String module,Object... others){
         return generateTopic(app,module,null,others);

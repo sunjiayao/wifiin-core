@@ -1,33 +1,33 @@
-package com.wifiin.exception;
+package com.wifiin.common.query.exception;
 
-public class CellPhoneHomeException extends RuntimeException{
+public class QueryException extends RuntimeException{
 
     /**
      * 
      */
     private static final long serialVersionUID=3870678160022706986L;
 
-    public CellPhoneHomeException(){
+    public QueryException(){
         super();
         // TODO Auto-generated constructor stub
     }
 
-    public CellPhoneHomeException(String message,Throwable cause,boolean enableSuppression,boolean writableStackTrace){
+    public QueryException(String message,Throwable cause,boolean enableSuppression,boolean writableStackTrace){
         super(message,cause,enableSuppression,writableStackTrace);
         // TODO Auto-generated constructor stub
     }
 
-    public CellPhoneHomeException(String message,Throwable cause){
+    public QueryException(String message,Throwable cause){
         super(message,cause);
         // TODO Auto-generated constructor stub
     }
 
-    public CellPhoneHomeException(String message){
+    public QueryException(String message){
         super(message);
         // TODO Auto-generated constructor stub
     }
 
-    public CellPhoneHomeException(Throwable cause){
+    public QueryException(Throwable cause){
         super(cause);
         // TODO Auto-generated constructor stub
     }

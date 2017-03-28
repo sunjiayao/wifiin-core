@@ -6,6 +6,7 @@ import java.util.Map;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.serialization.Serializer;
+import org.nustaq.serialization.FSTConfiguration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wifiin.common.GlobalObject;
@@ -83,6 +84,7 @@ public class SerdeFactory extends Serdes{
             super(serializer,deserializer);
         }
     }
+    
     public static class FstSerde extends Serdes.WrapperSerde<Object>{
         public FstSerde(){
             this(new Serializer<Object>(){
@@ -103,6 +105,7 @@ public class SerdeFactory extends Serdes{
                 }
             },new Deserializer<Object>(){
                 private boolean isKey;
+                private final FSTConfiguration fstJson=FSTConfiguration.createJsonNoRefConfiguration();
                 @Override
                 public void close(){
                     //do nothing
@@ -116,7 +119,11 @@ public class SerdeFactory extends Serdes{
                     if(Help.isEmpty(data)){
                         return null;
                     }
-                    return GlobalObject.getFSTConfiguration().asObject(data);
+                    try{
+                        return GlobalObject.getFSTConfiguration().asObject(data);
+                    }catch(Exception e){
+                        return fstJson.asObject(data);
+                    }
                 }
             });
         }

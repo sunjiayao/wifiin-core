@@ -29,7 +29,10 @@ public class ConfigManagedDataSource extends HikariDataSource{
         private static final long serialVersionUID=8577090161528694595L;
     }
     public ConfigManagedDataSource(){
-        super(ConfigManager.getInstance().getObject(DATASOURCE_CONFIG,SerializableHikariConfig.class,new SerializableHikariConfig()));
+        this(DATASOURCE_CONFIG);
+    }
+    public ConfigManagedDataSource(String key){
+        super(ConfigManager.getInstance().getObject(key,SerializableHikariConfig.class,new SerializableHikariConfig()));
     }
     /**
      * watch触发后，自动重新watch

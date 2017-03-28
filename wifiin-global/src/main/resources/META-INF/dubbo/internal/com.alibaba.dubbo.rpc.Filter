@@ -1,0 +1,2 @@
+consumerLog=com.wifiin.rpc.dubbo.ConsumerAccessLogFilter
+providerLog=com.wifiin.rpc.dubbo.ProviderAccessLogFilter

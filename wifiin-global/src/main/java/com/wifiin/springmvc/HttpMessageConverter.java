@@ -5,7 +5,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,7 +27,6 @@ import com.google.common.collect.Lists;
 import com.wifiin.common.CommonConstant;
 import com.wifiin.common.GlobalObject;
 import com.wifiin.data.exception.DataTransformerException;
-import com.wifiin.reflect.BeanUtil;
 import com.wifiin.util.Help;
 import com.wifiin.util.io.IOUtil;
 
@@ -60,6 +58,7 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
             charset=Charset.forName(mediaType.substring(idx+1).trim());
         }
     }
+    @SuppressWarnings("unchecked")
     public String getResponseMediaType(){
         return Help.convert(responseMediaTypes,requestMediaTypes).toString();
     }
@@ -146,13 +145,9 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
      * @throws JsonMappingException 
      * @throws JsonParseException 
      */
-    @SuppressWarnings({"unchecked","rawtypes"})
+    @SuppressWarnings({"unchecked"})
     protected E convert(Type type,Class<?> ctxCls,byte[] buf) throws Exception{
-        String json=new String(buf,charset);
-        Map params=GlobalObject.getJsonMapper().readValue(json, Map.class);
-        E paramBean=((Class<E>)type).newInstance();
-        BeanUtil.populate(params,ctxCls,false,true);
-        return paramBean;
+        return GlobalObject.getJsonMapper().readValue(buf, (Class<E>)type);
     }
     @Override
     public E read(Type type,Class<?> ctxCls, HttpInputMessage inMsg) throws IOException,HttpMessageNotReadableException{
