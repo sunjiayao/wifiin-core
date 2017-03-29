@@ -713,7 +713,8 @@ public class WifiinUtil {
         //{"sdkPartnerUserId":"15135764","os":"0","osVersion":"4.2.2","signature":"","loginType":"-1",
         //"imei":"99000640020178","verify":"MDExNmJlNjJlccM4NWY0MWZlMTAzYTYzMjY3ZTUyY2FkYWQ=",
         //"sdkPartnerKey":"c0c7c76d30bd3dcaefc96f40275bdc0a","time":"20161203192501018","clientVersion":"2.4.24","deviceId":"99000640020178","mac":"a086c67f9ba0"}
-        System.out.println(verify("863893020445924","20161203193341182","MDA0NmNlNjwxXbAwMjgzZmM2OWRhMmNiNDhjNzc3ZDZiMjk="));
+        System.out.println(makeVerifyCode("357555058213093","20170329103556017"));
+        System.out.println(verify("357555058213093","20170329103556017","MjlkZGQ4MTZUZIRkOTEyZjdlZjZkMTU0ZWRkZmMyNWEzMzk="));
         System.out.println(MessageDigestUtil.sha1Base64("helloworld"));
     }
 }

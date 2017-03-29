@@ -169,16 +169,18 @@ public class KafkaClient{
         return generateTopic(app,module,null,others);
     }
     /**
-     * 将参数合并为一个字符串数组，新数组内仍然按others的顺序排列，last在最后一个
-     * @param last 在新数组内的最后一个
-     * @param others 在新数组内的顺序不变
+     * 合并所有配置
+     * @param defaultConfKey
+     * @param others
      * @return
      */
-    public static String[] mergeKeys(String last,String... others){
-        String[] keys=new String[others.length+1];
-        System.arraycopy(others,0,keys,0,others.length);
-        keys[others.length]=last;
-        return keys;
+    public static Map<String,Object> mergeProps(String defaultConfKey,String... others){
+        Map props=Maps.newHashMap();
+        ConfigManager.getInstance().getHashMap(defaultConfKey);
+        for(int i=0,l=others.length;i<l;i++){
+            props.putAll(ConfigManager.getInstance().getHashMap(others[i]));
+        }
+        return props;
     }
     /**
      * 得到生产者，一个进程只创建一个生产者
@@ -195,8 +197,7 @@ public class KafkaClient{
         if(producer==null){
             synchronized(KafkaProducer.class){
                 if(producer==null){
-                    Map<String,Object> props=ConfigManager.getInstance().mergeHashMap(mergeKeys(KAFKA_PRODUCER_CONFIG,kafkaProducerKeys));
-                    producer(props);
+                    producer(mergeProps(KAFKA_PRODUCER_CONFIG,kafkaProducerKeys));
                 }
             }
         }
@@ -417,8 +418,7 @@ public class KafkaClient{
      */
     @SuppressWarnings({"rawtypes"})
     private static <T extends KafkaConsumerId> KafkaConsumer consumer(T id,String... kafkaConsumerKeys){
-        Map<String,Object> props=ConfigManager.getInstance().mergeHashMap(mergeKeys(KAFKA_CONSUMER_CONFIG,kafkaConsumerKeys));
-        return consumer(id,props);
+        return consumer(id,mergeProps(KAFKA_CONSUMER_CONFIG,kafkaConsumerKeys));
     }
     /**
      * 得到com.wifiin.kaka.KafkaConsumer对象。本方法返回的消费者尚未启动，需要调用其它方法添加消息处理器，指定同步或异步模式，最后调用execute(...)启动消费任务线程。

@@ -66,8 +66,7 @@ public class KafkaStreamsBuilder{
      *                         @see KafkaClient.KAFKA_STREAMS_CONFIG默认是空的HashMap，本HashMap所有的键值对优先级最低，如果指定了其它的配置参数key，则本HashMap会被覆盖。
      */
     public void start(String... kafkaStreamsKeys){
-        Map<String,Object> props=ConfigManager.getInstance().mergeHashMap(KafkaClient.mergeKeys(KafkaClient.KAFKA_STREAMS_CONFIG,kafkaStreamsKeys));
-        start(props);
+        start(KafkaClient.mergeProps(KafkaClient.KAFKA_STREAMS_CONFIG,kafkaStreamsKeys));
     }
     /**
      * 启动流对象

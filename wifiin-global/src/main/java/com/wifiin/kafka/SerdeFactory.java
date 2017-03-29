@@ -1,5 +1,6 @@
 package com.wifiin.kafka;
 
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
@@ -27,7 +28,11 @@ public class SerdeFactory extends Serdes{
      * @author Running
      *
      */
-    public static class AutoSerializer implements Serializer<Object>{
+    public static class AutoSerializer implements Serializer<Object>,Serializable{
+        /**
+         * 
+         */
+        private static final long serialVersionUID=6775020926768903822L;
         private boolean isKey;
         public AutoSerializer(){}
         @Override
@@ -52,7 +57,11 @@ public class SerdeFactory extends Serdes{
      * @author Running
      *
      */
-    public static class AutoDeserializer implements Deserializer<Object>{
+    public static class AutoDeserializer implements Deserializer<Object>, Serializable{
+        /**
+         * 
+         */
+        private static final long serialVersionUID=-9111322888473955417L;
         private boolean isKey;
         public AutoDeserializer(){}
         @Override
@@ -76,7 +85,11 @@ public class SerdeFactory extends Serdes{
      * 目前支持jackson、fst两种方式
      * @author Running
      */
-    public static class AutoSerde extends Serdes.WrapperSerde<Object>{
+    public static class AutoSerde extends Serdes.WrapperSerde<Object> implements Serializable{
+        /**
+         * 
+         */
+        private static final long serialVersionUID=8087216774369387769L;
         public AutoSerde(){
             this(new AutoSerializer(),new AutoDeserializer());
         }
@@ -84,48 +97,61 @@ public class SerdeFactory extends Serdes{
             super(serializer,deserializer);
         }
     }
-    
-    public static class FstSerde extends Serdes.WrapperSerde<Object>{
+    public static class FstSerializer implements Serializer<Object>, Serializable{
+        /**
+         * 
+         */
+        private static final long serialVersionUID=-5489591067236526278L;
+        @Override
+        public void close(){
+            //do nothing
+        }
+        @Override
+        public void configure(Map<String,?> arg0,boolean arg1){
+            //do nothing
+        }
+        @Override
+        public byte[] serialize(String topic,Object data){
+            if(data==null){
+                return KafkaClient.EMPTY_BYTES;
+            }
+            return GlobalObject.getFSTConfiguration().asByteArray(data);
+        }
+    }
+    public static class FstDeserializer implements Deserializer<Object>, Serializable{
+        /**
+         * 
+         */
+        private static final long serialVersionUID=-3900549257087447898L;
+        private boolean isKey;
+        private final FSTConfiguration fstJson=FSTConfiguration.createJsonNoRefConfiguration();
+        @Override
+        public void close(){
+            //do nothing
+        }
+        @Override
+        public void configure(Map<String,?> config,boolean isKey){
+            this.isKey=isKey;
+        }
+        @Override
+        public Object deserialize(String topic,byte[] data){
+            if(Help.isEmpty(data)){
+                return null;
+            }
+            try{
+                return GlobalObject.getFSTConfiguration().asObject(data);
+            }catch(Exception e){
+                return fstJson.asObject(data);
+            }
+        }
+    }
+    public static class FstSerde extends Serdes.WrapperSerde<Object> implements Serializable{
+        /**
+         * 
+         */
+        private static final long serialVersionUID=-3408804048040953200L;
         public FstSerde(){
-            this(new Serializer<Object>(){
-                @Override
-                public void close(){
-                    //do nothing
-                }
-                @Override
-                public void configure(Map<String,?> arg0,boolean arg1){
-                    //do nothing
-                }
-                @Override
-                public byte[] serialize(String topic,Object data){
-                    if(data==null){
-                        return KafkaClient.EMPTY_BYTES;
-                    }
-                    return GlobalObject.getFSTConfiguration().asByteArray(data);
-                }
-            },new Deserializer<Object>(){
-                private boolean isKey;
-                private final FSTConfiguration fstJson=FSTConfiguration.createJsonNoRefConfiguration();
-                @Override
-                public void close(){
-                    //do nothing
-                }
-                @Override
-                public void configure(Map<String,?> config,boolean isKey){
-                    this.isKey=isKey;
-                }
-                @Override
-                public Object deserialize(String topic,byte[] data){
-                    if(Help.isEmpty(data)){
-                        return null;
-                    }
-                    try{
-                        return GlobalObject.getFSTConfiguration().asObject(data);
-                    }catch(Exception e){
-                        return fstJson.asObject(data);
-                    }
-                }
-            });
+            this(new FstSerializer(),new FstDeserializer());
         }
         private FstSerde(Serializer<Object> serializer,Deserializer<Object> deserializer){
             super(serializer,deserializer);
