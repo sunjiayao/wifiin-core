@@ -4,7 +4,6 @@ package com.wifiin.constant;
  * 账号类型 对应BdApAccounter.wifiinApId
  * 
  * @author running
- *         
  */
 public enum ApType {
     CMCC(1, "CMCC", "CM"), 

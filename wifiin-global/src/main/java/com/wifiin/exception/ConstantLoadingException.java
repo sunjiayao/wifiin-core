@@ -20,7 +20,6 @@ public class ConstantLoadingException extends RuntimeException{
 	public ConstantLoadingException(String message) {
 		super(message);
 	}
-
 	public ConstantLoadingException(Throwable cause) {
 		super(cause);
 	}

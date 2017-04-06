@@ -21,6 +21,7 @@ import com.wifiin.util.string.ThreadLocalStringBuilder;
 import javassist.ClassPool;
 import javassist.CtClass;
 
+@Deprecated
 public class DynamicDubboConsumerMaker{
     private static final Map<String,DynamicDubboConsumerWrapper> DYNAMIC_DUBBO_CONSUMER_MAP=Maps.newConcurrentMap();
     private static final Pattern DOT_REGEX=RegexUtil.getRegex("\\.");

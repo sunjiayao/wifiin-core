@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 /**
  * 电信运营商
  * @author Running
- *
  */
 public enum TelecomOperator{
     SATELITE(-3,"卫星"),

@@ -22,7 +22,7 @@ public class GetSetUtil{
     private static final ClassPool CLASS_POOL=ClassPool.getDefault();
     private static final Map<Method,String> METHOD_PROPERTY_NAME_MAP=Maps.newConcurrentMap();
     private static final String GETTER_PACKAGE_NAME=(ClassGetterMap.class.getPackage().getName()+".getters").intern();
-    private static final String SETTER_PACKAGE_NAME=(ClassGetterMap.class.getPackage().getName()+".setters").intern();
+    private static final String SETTER_PACKAGE_NAME=(ClassSetterMap.class.getPackage().getName()+".setters").intern();
     private static final Map<Class<?>,Map<String,Getter<?,?>>> CLASS_GETTER_MAP=Maps.newConcurrentMap(); 
     private static final Map<Class<?>,Map<String,Setter<?,?>>> CLASS_SETTER_MAP=Maps.newConcurrentMap();
     private static final Map<Class,Class> PRIMITIVE_WRAPPER_MAP=ImmutableMap.<Class,Class>builder()

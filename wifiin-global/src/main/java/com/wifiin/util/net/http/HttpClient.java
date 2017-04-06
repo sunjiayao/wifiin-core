@@ -182,6 +182,9 @@ public class HttpClient {
         this.url=url;
     }
     
+    public InputStream putForInputStream() throws IOException{
+        return access(InputStream.class,HttpMethod.PUT);
+    }
     public String put() throws IOException{
         return access(String.class,HttpMethod.PUT);
     }
@@ -192,6 +195,9 @@ public class HttpClient {
         access(HttpMethod.PUT,out);
     }
     
+    public InputStream deleteForInputStream() throws IOException{
+        return access(InputStream.class,HttpMethod.DELETE);
+    }
     public String delete() throws IOException{
         return access(String.class,HttpMethod.DELETE);
     }
@@ -202,6 +208,9 @@ public class HttpClient {
         access(HttpMethod.DELETE,out);
     }
     
+    public InputStream postForInputStream() throws IOException{
+        return access(InputStream.class,HttpMethod.POST);
+    }
     public String post() throws IOException{
         return access(String.class,HttpMethod.POST);
     }
@@ -212,6 +221,9 @@ public class HttpClient {
         access(HttpMethod.POST,out);
     }
     
+    public InputStream getForInputStream() throws IOException{
+        return access(InputStream.class,HttpMethod.GET);
+    }
     public String get() throws IOException{
         return access(String.class,HttpMethod.GET);
     }
@@ -222,14 +234,66 @@ public class HttpClient {
         access(HttpMethod.GET,out);
     }
     
+    public InputStream optionsForInputStream() throws IOException{
+        return access(InputStream.class,HttpMethod.OPTIONS);
+    }
+    public String options() throws IOException{
+        return access(String.class,HttpMethod.OPTIONS);
+    }
+    public <R> R options(Class<R> r) throws IOException{
+        return access(r,HttpMethod.OPTIONS);
+    }
+    public <P> void options(OutputStream out) throws IOException{
+        access(HttpMethod.OPTIONS,out);
+    }
+    
+    public InputStream traceForInputStream() throws IOException{
+        return access(InputStream.class,HttpMethod.TRACE);
+    }
+    public String trace() throws IOException{
+        return access(String.class,HttpMethod.TRACE);
+    }
+    public <R> R trace(Class<R> r) throws IOException{
+        return access(r,HttpMethod.TRACE);
+    }
+    public <P> void trace(OutputStream out) throws IOException{
+        access(HttpMethod.TRACE,out);
+    }
+    
+    public InputStream headForInputStream() throws IOException{
+        return access(InputStream.class,HttpMethod.HEAD);
+    }
+    public String head() throws IOException{
+        return access(String.class,HttpMethod.HEAD);
+    }
+    public <R> R head(Class<R> r) throws IOException{
+        return access(r,HttpMethod.HEAD);
+    }
+    public <P> void head(OutputStream out) throws IOException{
+        access(HttpMethod.HEAD,out);
+    }
+    
+    public InputStream patchForInputStream() throws IOException{
+        return access(InputStream.class,HttpMethod.PATCH);
+    }
+    public String patch() throws IOException{
+        return access(String.class,HttpMethod.PATCH);
+    }
+    public <R> R patch(Class<R> r) throws IOException{
+        return access(r,HttpMethod.PATCH);
+    }
+    public <P> void patch(OutputStream out) throws IOException{
+        access(HttpMethod.PATCH,out);
+    }
+    
     public String access(HttpMethod method) throws IOException{
-        return communicate(method,String.class,null);
+        return access(method,String.class);
     }
     public <R,P> R access(HttpMethod method,Class<R> r) throws IOException{
         return communicate(method,r,null);
     }
     public <R> R access(Class<R> r,HttpMethod method) throws IOException{
-        return communicate(method,r,null);
+        return access(method,r);
     }
     public <P> void access(HttpMethod method,OutputStream out) throws IOException{
         communicate(method,Void.class,out);
@@ -342,13 +406,17 @@ public class HttpClient {
             @Override
             public <R> R read(HttpClient http,OutputStream out) throws IOException{
                 if(out!=null){
-                    byte[] buf=RETURN_BYTES.read(http,out);
-                    out.write(buf,0,buf.length);
-                    out.flush();
+                    http.responseEntity.writeTo(out);
                     return null;
                 }
                 throw new IllegalArgumentException("OutputStream arg must not be null");
             }
+        },INPUT(InputStream.class){
+            @Override
+            public <R> R read(HttpClient http,OutputStream out) throws IOException{
+                return (R)http.responseEntity.getContent();
+            }
+            
         },UNSUPPORTABLE(null) {
             @Override
             public <R> R read(HttpClient http,OutputStream out) throws IOException{

@@ -5,9 +5,12 @@ import java.net.UnknownHostException;
 
 public class LocalhostException extends RuntimeException{
 
-	public LocalhostException() {
+	/**
+     * 
+     */
+    private static final long serialVersionUID=4414632023456360593L;
+    public LocalhostException() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public LocalhostException(String message, UnknownHostException cause,

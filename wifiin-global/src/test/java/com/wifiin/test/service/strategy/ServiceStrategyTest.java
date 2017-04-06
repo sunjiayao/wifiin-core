@@ -2,7 +2,6 @@ package com.wifiin.test.service.strategy;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;

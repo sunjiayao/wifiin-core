@@ -9,7 +9,6 @@ public class NoSuchPropertyException extends RuntimeException{
 
     public NoSuchPropertyException(){
         super();
-        // TODO Auto-generated constructor stub
     }
 
     public NoSuchPropertyException(String message,Throwable cause,boolean enableSuppression,boolean writableStackTrace){

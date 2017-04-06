@@ -13,14 +13,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.wifiin.common.CommonConstant;
-import com.wifiin.common.query.cellphone.CellPhone360;
-import com.wifiin.common.query.cellphone.CellPhoneBaiFuBao;
-import com.wifiin.common.query.cellphone.CellPhoneBaidu;
-import com.wifiin.common.query.cellphone.CellPhoneDaHanBank;
-import com.wifiin.common.query.cellphone.CellPhoneIteBlog;
-import com.wifiin.common.query.cellphone.CellPhoneLocalLibrary;
-import com.wifiin.common.query.cellphone.CellPhoneTaobao;
-import com.wifiin.common.query.cellphone.CellPhoneTenPay;
 import com.wifiin.config.ConfigManager;
 import com.wifiin.util.Help;
 

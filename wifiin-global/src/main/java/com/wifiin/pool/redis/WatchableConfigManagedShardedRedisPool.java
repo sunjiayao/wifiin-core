@@ -1527,7 +1527,34 @@ public class WatchableConfigManagedShardedRedisPool implements RedisConnection{
             }
         }
     }
-
+    @Override
+    public String setJsonFromObjectExpire(String key,Object value,int expire){
+        if(value==null){
+            String nullString=null;
+            return set(key,nullString);
+        }else{
+            try{
+                return setex(key,expire,GlobalObject.getJsonMapper().writeValueAsString(value));
+            }catch(JsonProcessingException e){
+                throw new JsonGenerationException(e);
+            }
+        }
+    }
+    @Override
+    public String setJsonFromObjectExpireAt(String key,Object value,long expireAt){
+        if(value==null){
+            String nullString=null;
+            return set(key,nullString);
+        }else{
+            try{
+                String result = set(key,GlobalObject.getJsonMapper().writeValueAsString(value));
+                expireAt(key,expireAt);
+                return result;
+            }catch(JsonProcessingException e){
+                throw new JsonGenerationException(e);
+            }
+        }
+    }
     @Override
     public <E> E hmget(String key,Class<E> cls,String... fields) throws Exception{
         List<String> list=hmget(key,fields);

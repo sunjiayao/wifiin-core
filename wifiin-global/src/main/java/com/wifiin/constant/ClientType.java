@@ -2,9 +2,7 @@ package com.wifiin.constant;
 
 /**
  * 客户端类型，对应webservice接口的<os></os>节点和数据库的os字段
- * 
  * @author running
- *         
  */
 public enum ClientType {
     COMMON(-1), ANDROID(0), IOS(3), WP(2), IOS_SHOP(3);

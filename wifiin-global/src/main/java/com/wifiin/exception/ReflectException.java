@@ -4,7 +4,6 @@ public class ReflectException extends RuntimeException{
 
 	public ReflectException() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public ReflectException(String message, Throwable cause,

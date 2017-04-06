@@ -2,11 +2,9 @@ package com.wifiin.util.net;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.List;
 
 import com.wifiin.exception.LocalhostException;
 import com.wifiin.util.Help;
@@ -241,7 +239,8 @@ public class Localhost {
 	 * @return
 	 */
 	private static String getLocalMacInString0(){
-	    return Long.toString(localMacLong=getLocalMacLong0(),16);
+	    String mac=Long.toString(localMacLong=getLocalMacLong0(),16);
+	    return Help.concat("0",12-mac.length())+mac;
 	}
 	/**
 	 * 本机主机名
@@ -265,11 +264,14 @@ public class Localhost {
 	    return getLocalhost().getHostName();
 	}
 	public static void main(String[] args) throws IOException {
+	    System.out.println(getLocalhost());
+	    System.out.println(getNetworkInterface().getHardwareAddress());
+	    System.out.println(getLocalMacInString());
 	    java.util.Enumeration<NetworkInterface> nie=NetworkInterface.getNetworkInterfaces();
 	    while(nie.hasMoreElements()){
 	        NetworkInterface ni=nie.nextElement();
 	        System.out.println("################");
-	        System.out.println("loopback:"+ni.isLoopback()+";up:"+ni.isUp()+";virtual:"+ni.isVirtual());
+	        System.out.println("loopback:"+ni.isLoopback()+";up:"+ni.isUp()+";virtual:"+ni.isVirtual()+"   "+ni.getHardwareAddress());
 	        java.util.Enumeration<InetAddress> iae=ni.getInetAddresses();
 	        while(iae.hasMoreElements()){
 	            InetAddress ia=iae.nextElement();

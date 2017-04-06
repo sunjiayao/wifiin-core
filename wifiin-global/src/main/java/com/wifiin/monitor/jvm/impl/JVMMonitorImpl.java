@@ -1,6 +1,5 @@
 package com.wifiin.monitor.jvm.impl;
 
-import java.lang.management.ManagementFactory;
 import java.util.Map;
 
 import com.codahale.metrics.Gauge;
@@ -8,7 +7,6 @@ import com.codahale.metrics.JvmAttributeGaugeSet;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.MetricSet;
-import com.codahale.metrics.jvm.BufferPoolMetricSet;
 import com.codahale.metrics.jvm.ClassLoadingGaugeSet;
 import com.codahale.metrics.jvm.FileDescriptorRatioGauge;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;

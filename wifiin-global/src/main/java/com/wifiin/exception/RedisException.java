@@ -1,7 +1,6 @@
 package com.wifiin.exception;
 
 public class RedisException extends RuntimeException {
-
 	/**
 	 * 
 	 */

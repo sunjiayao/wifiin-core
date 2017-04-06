@@ -27,5 +27,4 @@ public class ObjectPopulationException extends RuntimeException{
 	public ObjectPopulationException(Throwable cause) {
 		super(cause);
 	}
-
 }

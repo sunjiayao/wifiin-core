@@ -2,7 +2,6 @@ package com.wifiin.exception;
 
 /**
  * web应用向浏览器输出数据时可能抛出此异常
- *
  */
 public class ResponseWriteException extends RuntimeException {
 	/**

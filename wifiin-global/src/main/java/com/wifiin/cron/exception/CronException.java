@@ -1,32 +1,33 @@
-package com.wifiin.exception;
+package com.wifiin.cron.exception;
 
-public class ConfigException extends RuntimeException{
+public class CronException extends RuntimeException{
+
     /**
      * 
      */
-    private static final long serialVersionUID=6212795620950952673L;
+    private static final long serialVersionUID=5147101398288855799L;
 
-    public ConfigException(){
+    public CronException(){
         super();
         // TODO Auto-generated constructor stub
     }
 
-    public ConfigException(String message,Throwable cause,boolean enableSuppression,boolean writableStackTrace){
+    public CronException(String message,Throwable cause,boolean enableSuppression,boolean writableStackTrace){
         super(message,cause,enableSuppression,writableStackTrace);
         // TODO Auto-generated constructor stub
     }
 
-    public ConfigException(String message,Throwable cause){
+    public CronException(String message,Throwable cause){
         super(message,cause);
         // TODO Auto-generated constructor stub
     }
 
-    public ConfigException(String message){
+    public CronException(String message){
         super(message);
         // TODO Auto-generated constructor stub
     }
 
-    public ConfigException(Throwable cause){
+    public CronException(Throwable cause){
         super(cause);
         // TODO Auto-generated constructor stub
     }

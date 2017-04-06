@@ -3,7 +3,6 @@ package com.wifiin.util.text.template;
 /**
  * GROOVY和FREE_MARKER会忽略prefix和suffix
  * @author Running
- *
  */
 public enum TextTemplateFormatterType{
     PLAIN_TEXT{

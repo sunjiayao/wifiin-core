@@ -22,6 +22,7 @@ public class GroovyTextTemplateFormatter<T> implements TextTemplateFormatter<T>{
     public GroovyTextTemplateFormatter(String template){
         this(template,MessageDigestUtil.md5Base64(template));
     }
+    @SuppressWarnings("unchecked")
     public GroovyTextTemplateFormatter(String template,String md5){
         this.md5=md5;
         try(GroovyClassLoader groovyLoader = new GroovyClassLoader();){

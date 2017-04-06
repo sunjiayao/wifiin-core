@@ -22,8 +22,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.RetryForever;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +33,7 @@ import com.google.common.collect.Sets;
 import com.wifiin.common.CommonConstant;
 import com.wifiin.common.GlobalObject;
 import com.wifiin.exception.ConfigException;
+import com.wifiin.util.CuratorFactory;
 import com.wifiin.util.Help;
 import com.wifiin.util.ShutdownHookUtil;
 /**
@@ -74,6 +73,12 @@ public class ConfigManager{
         populateConstants();
         addShutdownHook();
     }
+    public ConfigManager(String namespace,String connectString,int retryIntervalMs){
+        curator=initCurator(namespace,connectString,retryIntervalMs);
+    }
+    public CuratorFramework curator(){
+        return curator;
+    }
     /**
      * 初始化curator
      * @param namespace      应用标识
@@ -81,13 +86,7 @@ public class ConfigManager{
      * @param retryIntervalMs 如果连不上zookeeper，重试连接的周期，只要jvm不停会一直重试下去
      */
     private CuratorFramework initCurator(String namespace,String connectString,int retryIntervalMs){
-        CuratorFramework curator=CuratorFrameworkFactory.builder()
-                .namespace(namespace)
-                .retryPolicy(new RetryForever(retryIntervalMs))
-                .connectString(connectString)
-                .build();
-        curator.start();
-        return curator;
+        return CuratorFactory.get(namespace,retryIntervalMs,connectString);
     }
     /**
      * 填充常量map

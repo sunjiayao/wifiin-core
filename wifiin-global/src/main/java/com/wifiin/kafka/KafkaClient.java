@@ -7,10 +7,12 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KStreamBuilder;
+import org.slf4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
@@ -19,6 +21,7 @@ import com.wifiin.common.GlobalObject;
 import com.wifiin.config.ConfigManager;
 import com.wifiin.kafka.KafkaTopicClassMap.TopicClass;
 import com.wifiin.kafka.exception.KafkaException;
+import com.wifiin.log.LoggerFactory;
 import com.wifiin.util.Help;
 import com.wifiin.util.ShutdownHookUtil;
 import com.wifiin.util.net.Localhost;
@@ -30,6 +33,7 @@ import com.wifiin.util.string.ThreadLocalStringBuilder;
  *
  */
 public class KafkaClient{
+    private static final Logger log=LoggerFactory.getLogger(KafkaClient.class);
     /**
      * kafka broker 格式为host1:port1,host2:port2
      */
@@ -97,11 +101,11 @@ public class KafkaClient{
     /**
      * 当前进程内的kafka生产者
      */
-    private static KafkaProducer producer;
+    private static volatile KafkaProducer producer;
     /**
      * 当前进程内的kafka消费者
      */
-    private static Map<KafkaConsumerId<?>,KafkaConsumer> consumers;
+    private static volatile Map<KafkaConsumerId<?>,KafkaConsumer> consumers;
     static{
         /**
          * 进程退出时关闭所有kafka生产者和消费者
@@ -163,7 +167,17 @@ public class KafkaClient{
      * @return
      */
     static String createId(){
-        return Localhost.getLocalMacLong()+'-'+ProcessUtil.getPidHex()+'-'+Long.toHexString(Thread.currentThread().getId())+'-'+getCurrentDateTime();
+        String mac=null;
+        try{
+            mac=Localhost.getLocalMacInString();
+        }catch(Exception e){
+            mac=RandomStringUtils.random(12,"abcdef0123456789");
+        }
+        return ThreadLocalStringBuilder.builder()
+                .append(mac).append('-')
+                .append(ProcessUtil.getPidHex()).append('-')
+                .append(Long.toHexString(Thread.currentThread().getId())).append('-')
+                .append(getCurrentDateTime()).toString();
     }
     public static String generateTopic(String app,String module,Object... others){
         return generateTopic(app,module,null,others);
@@ -478,11 +492,23 @@ public class KafkaClient{
      */
     public static void close(){
         if(producer!=null){
-            producer.close();
+            try{
+                producer.close();
+                producer=null;
+            }catch(Exception e){
+                log.warn("KafkaClient.producer.close",e);
+            }
         }
         if(consumers!=null){
-            consumers.values().forEach(KafkaConsumer::close);
+            consumers.values().forEach((c)->{
+                try{
+                    c.close();
+                }catch(Exception e){
+                    log.warn("KafkaClient.consumers.close",e);
+                }
+            });
             consumers.clear();
+            consumers=null;
         }
     }
     /**

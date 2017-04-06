@@ -9,7 +9,6 @@ public class RPCMethodGetterException extends RuntimeException{
 
     public RPCMethodGetterException(){
         super();
-        // TODO Auto-generated constructor stub
     }
 
     public RPCMethodGetterException(String message,Throwable cause,boolean enableSuppression,

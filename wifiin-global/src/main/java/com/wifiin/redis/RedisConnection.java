@@ -72,7 +72,9 @@ public interface RedisConnection extends JedisCommands{
 	public Map<String,Object> getJsonMap(String key);
 	public Map<String,Object> getJsonMap(String key, String... fields);
 	public <E> E getObjectFromJson(String key, Class<E> cls);
-	public String setJsonFromObject(String key, Object value) ;
+	public String setJsonFromObject(String key, Object value);
+	public String setJsonFromObjectExpire(String key,Object value,int expire);
+	public String setJsonFromObjectExpireAt(String key,Object value,long expireAt);
 	public <E> E hmget(String key, Class<E> cls,String... fields) throws Exception;
 	public String hmset(String key, Map<String,Object> hash, String... fields);
 	public String hmset(String key, Object hash, String... fields);

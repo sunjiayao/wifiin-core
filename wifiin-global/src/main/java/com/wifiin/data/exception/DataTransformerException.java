@@ -9,7 +9,6 @@ public class DataTransformerException extends RuntimeException{
 
     public DataTransformerException(int type) {
         super("Not supported data transformer type:"+type);
-        // TODO Auto-generated constructor stub
     }
 
     public DataTransformerException() {

@@ -1,7 +1,6 @@
 package com.wifiin.kafka.exception;
 
 public class KafkaException extends RuntimeException{
-
     /**
      * 
      */

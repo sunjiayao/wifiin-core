@@ -63,6 +63,9 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
         return Help.convert(responseMediaTypes,requestMediaTypes).toString();
     }
     public void setResponseMediaType(String responseMediaType){
+        if(responseMediaTypes==null){
+            responseMediaTypes=Lists.newArrayList();
+        }
         int idx=responseMediaType.indexOf(';');
         if(idx<0){
             this.responseMediaTypes.add(MediaType.parseMediaType(responseMediaType));
@@ -170,7 +173,10 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
     protected void writeInternal(E t,Type type, HttpOutputMessage outMsg) throws IOException,HttpMessageNotWritableException{
         byte[] content=null;
         try{
-            request().setAttribute(SpringMVCConstant.RESULT_FOR_LOG,t);
+            HttpServletRequest request=request();
+            if(Help.isEmpty(request.getAttribute(SpringMVCConstant.RESULT_FOR_LOG))){
+                request.setAttribute(SpringMVCConstant.RESULT_FOR_LOG,t);
+            }
             content=convert(t,type);
             content=compress(content);
             content=encrypt(content);

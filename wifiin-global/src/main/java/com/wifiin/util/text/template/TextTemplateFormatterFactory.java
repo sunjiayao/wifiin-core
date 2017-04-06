@@ -3,7 +3,6 @@ package com.wifiin.util.text.template;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
-import com.wifiin.util.digest.MessageDigestUtil;
 /**
  * 文本模板工厂，如果没有指定tag就使用template的md5base64作为tag
  * @author Running
