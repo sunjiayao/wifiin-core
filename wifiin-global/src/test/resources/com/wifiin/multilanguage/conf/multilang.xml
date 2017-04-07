@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc" 
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:dubbo="http://code.alibabatech.com/schema/dubbo" 
+    xsi:schemaLocation="http://www.springframework.org/schema/beans 
+  http://www.springframework.org/schema/beans/spring-beans.xsd  
+  http://www.springframework.org/schema/context  
+  http://www.springframework.org/schema/context/spring-context.xsd 
+  http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd 
+  http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+  ">
+    <aop:aspectj-autoproxy />
+    <context:component-scan base-package="com.wifiin.multilanguage.**" use-default-filters="false">
+        <context:include-filter type="aspectj" expression="com.wifiin.multilanguage.MultiLangAspect"/>
+        <context:include-filter type="aspectj" expression="com.wifiin.multilanguage.MockMultiLangRPC"/>
+        <context:include-filter type="aspectj" expression="com.wifiin.multilanguage.MockRedis"/>
+        <context:include-filter type="aspectj" expression="com.wifiin.multilanguage.MultiLangService"/>
+    </context:component-scan>
+</beans>
