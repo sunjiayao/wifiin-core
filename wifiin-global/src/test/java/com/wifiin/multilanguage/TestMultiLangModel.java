@@ -1,5 +1,7 @@
 package com.wifiin.multilanguage;
 
+import com.wifiin.multilanguage.aop.MultiLangMapper;
+
 @MultiLangMapper
 public class TestMultiLangModel{
     private long id=1234;

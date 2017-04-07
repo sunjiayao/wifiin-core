@@ -1,4 +1,4 @@
-package com.wifiin.multilanguage.rpc.model.vo;
+package com.wifiin.multilanguage.aop.rpc.model.vo;
 
 import java.io.Serializable;
 

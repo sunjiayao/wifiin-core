@@ -1,4 +1,4 @@
-package com.wifiin.multilanguage;
+package com.wifiin.multilanguage.aop;
 
 import java.lang.annotation.Annotation;
 import java.util.Collections;
@@ -14,11 +14,11 @@ import org.springframework.stereotype.Component;
 import com.wifiin.cache.CacheKeyGenerator;
 import com.wifiin.cache.HeapCache;
 import com.wifiin.constant.WifiinConstant;
-import com.wifiin.multilanguage.exception.LanguageNotFoundException;
-import com.wifiin.multilanguage.exception.LanguageQueryException;
-import com.wifiin.multilanguage.rpc.MultiLangRPC;
-import com.wifiin.multilanguage.rpc.model.vo.MultiLangData;
-import com.wifiin.multilanguage.rpc.model.vo.MultiLangResponse;
+import com.wifiin.multilanguage.aop.exception.LanguageNotFoundException;
+import com.wifiin.multilanguage.aop.exception.LanguageQueryException;
+import com.wifiin.multilanguage.aop.rpc.MultiLangRPC;
+import com.wifiin.multilanguage.aop.rpc.model.vo.MultiLangData;
+import com.wifiin.multilanguage.aop.rpc.model.vo.MultiLangResponse;
 import com.wifiin.redis.RedisConnection;
 import com.wifiin.reflect.BeanUtil;
 import com.wifiin.reflect.getset.Getter;

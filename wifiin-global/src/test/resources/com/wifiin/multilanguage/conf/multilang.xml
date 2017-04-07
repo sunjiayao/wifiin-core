@@ -15,7 +15,7 @@
   ">
     <aop:aspectj-autoproxy />
     <context:component-scan base-package="com.wifiin.multilanguage.**" use-default-filters="false">
-        <context:include-filter type="aspectj" expression="com.wifiin.multilanguage.MultiLangAspect"/>
+        <context:include-filter type="aspectj" expression="com.wifiin.multilanguage.aop.MultiLangAspect"/>
         <context:include-filter type="aspectj" expression="com.wifiin.multilanguage.MockMultiLangRPC"/>
         <context:include-filter type="aspectj" expression="com.wifiin.multilanguage.MockRedis"/>
         <context:include-filter type="aspectj" expression="com.wifiin.multilanguage.MultiLangService"/>

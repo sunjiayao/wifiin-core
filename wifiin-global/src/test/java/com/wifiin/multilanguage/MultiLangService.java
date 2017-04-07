@@ -2,8 +2,8 @@ package com.wifiin.multilanguage;
 
 import org.springframework.stereotype.Component;
 
-import com.wifiin.multilanguage.Lang;
-import com.wifiin.multilanguage.MultiLangMethod;
+import com.wifiin.multilanguage.aop.Lang;
+import com.wifiin.multilanguage.aop.MultiLangMethod;
 
 @Component
 public class MultiLangService{

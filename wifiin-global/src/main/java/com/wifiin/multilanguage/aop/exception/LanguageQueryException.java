@@ -1,4 +1,4 @@
-package com.wifiin.multilanguage.exception;
+package com.wifiin.multilanguage.aop.exception;
 
 public class LanguageQueryException extends RuntimeException{
 

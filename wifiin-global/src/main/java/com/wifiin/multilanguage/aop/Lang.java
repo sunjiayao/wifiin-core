@@ -1,4 +1,4 @@
-package com.wifiin.multilanguage;
+package com.wifiin.multilanguage.aop;
 
 import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
