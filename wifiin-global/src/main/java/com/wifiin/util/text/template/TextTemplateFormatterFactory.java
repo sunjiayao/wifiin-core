@@ -11,6 +11,11 @@ import com.google.common.collect.Maps;
 public class TextTemplateFormatterFactory{
     @SuppressWarnings("rawtypes")
     private static final Map<String,TextTemplateFormatter> TEMPLATE_MAP=Maps.newConcurrentMap();
+    private static final String DEFAULT_PATTERN_PREFIX="${";
+    private static final String DEFAULT_PATTERN_SUFFIX="}";
+    public static <T> TextTemplateFormatter<T> getPlainTextTemplateFormatter(String template){
+        return getPlainTextTemplateFormatter(template,DEFAULT_PATTERN_PREFIX,DEFAULT_PATTERN_SUFFIX);
+    }
     public static <T> TextTemplateFormatter<T> getPlainTextTemplateFormatter(String template,String prefix,String suffix){
         return getPlainTextTemplateFormatter(template,template,prefix,suffix);
     }

@@ -3,7 +3,6 @@ package com.wifiin.redis;
 import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -19,10 +18,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.Maps;
 import com.wifiin.common.GlobalObject;
 import com.wifiin.exception.JsonGenerationException;
 import com.wifiin.exception.JsonParseException;
 import com.wifiin.exception.RedisException;
+import com.wifiin.reflect.BeanUtil;
 import com.wifiin.util.Help;
 import com.wifiin.util.regex.RegexUtil;
 import com.wifiin.util.string.ThreadLocalStringBuilder;
@@ -303,7 +304,8 @@ public class JedisConnection implements RedisConnection{
 		return hset(key,field,value!=null?value.toString():null);
 	}
 
-	@Override
+	@SuppressWarnings({"unchecked","rawtypes"})
+    @Override
 	public String set(String key, Object value) {
 		if(value instanceof String || value instanceof Number || value instanceof Boolean){
 			return set(key,value.toString());
@@ -318,26 +320,11 @@ public class JedisConnection implements RedisConnection{
 			}
 			return String.valueOf(set(key,(Map)mv));
 		}else{
-			Class c=value.getClass();
-			Field[] fs=c.getDeclaredFields();
-			Map m=new HashMap();
-			for(int i=0,l=fs.length;i<l;i++){
-				Field f=fs[i];
-				f.setAccessible(true);
-				if(Help.isFinalOrStaticField(f)){
-					continue;
-				}
-				try {
-					Object v=f.get(value);
-					if(v!=null){
-						m.put(f.getName(), value2String(v));
-					}
-				} catch (Exception e) {}
-			}
-			return String.valueOf(set(key,m));
+			return String.valueOf(set(key,BeanUtil.populateMap(value,false,this::value2String)));
 		}
 	}
-	@Override
+	@SuppressWarnings({"unchecked","rawtypes"})
+    @Override
 	public String set(String key, Object value, String... fields) {
 		if(Help.isEmpty(fields)){
 			return "0";
@@ -354,26 +341,7 @@ public class JedisConnection implements RedisConnection{
 			}
 			return Long.toString(set(key,mv));
 		}
-		Class c=value.getClass();
-		Field[] fs=c.getDeclaredFields();
-		Map m=new HashMap();
-		if(fields!=null){
-			for(int i=0,l=fields.length;i<l;i++){
-				String fn=fields[i];
-				try{
-					Field f=c.getDeclaredField(fn);
-					f.setAccessible(true);
-					if(Help.isFinalOrStaticField(f)){
-						continue;
-					}
-					Object v=f.get(value);
-					if(v!=null){
-						m.put(f.getName(), value2String(v));
-					}
-				}catch(Exception e){}
-			}
-		}
-		return Long.toString(set(key,m));
+		return Long.toString(set(key,(Map)BeanUtil.populateMap(value,false,this::value2String,fields)));
 	}
 
 	@Override
@@ -514,20 +482,7 @@ public class JedisConnection implements RedisConnection{
         if(Help.isEmpty(fields)){
             return "0";
         }
-        Map m=new HashMap();
-        if(Help.isNotEmpty(fields)){
-            Class c=hash.getClass();
-            for(int i=0,l=fields.length;i<l;i++){
-                try{
-                    String fn=fields[i];
-                    Method getter=c.getMethod(ThreadLocalStringBuilder.builder().append("get").append(fn).replace(3,4,String.valueOf(Character.toUpperCase(fn.charAt(0)))).toString());
-                    Object v=getter.invoke(hash);
-                    if(v!=null){
-                        m.put(fields[i],value2String(v));
-                    }
-                }catch(Exception e){}
-            }
-        }
+        Map<String,String> m=BeanUtil.populateMap(hash,false,this::value2String,fields);
         return hmset0(key,m);
     }
 	
@@ -548,21 +503,7 @@ public class JedisConnection implements RedisConnection{
 		if(value instanceof Map){
 			return hmset(key,(Map)value);
 		}else{
-			Class c=value.getClass();
-			Method[] methods=c.getMethods();
-			Map m=new HashMap();
-			for(int i=0,l=methods.length;i<l;i++){
-				Method method=methods[i];
-				try {
-					Object v=method.invoke(value);
-					if(v!=null){
-					    String mn=method.getName();
-					    mn=mn.substring(3);
-					    mn=ThreadLocalStringBuilder.builder().append(mn).replace(0,1,String.valueOf(Character.toLowerCase(mn.charAt(0)))).toString();
-						m.put(mn, value2String(v));
-					}
-				} catch (Exception e) {}
-			}
+		    Map<String,String> m=BeanUtil.populateMap(value,false,this::value2String);
 			return hmset0(key,m);
 		}
 	}
@@ -1216,46 +1157,52 @@ public class JedisConnection implements RedisConnection{
             throw new JsonParseException(e);
         }
 	}
-	@Override
-	public String setJsonFromObject(String key, Object value) {
-		if(value==null){
-			String nullString=null;
-			return set(key,nullString);
-		}else{
-			try{
-                return set(key,GlobalObject.getJsonMapper().writeValueAsString(value));
+	private enum SetJsonFromObject{
+	    NO_EXPIRE {
+            @Override
+            public String set(RedisConnection redis,String key,Object value,long expire) throws JsonProcessingException{
+                return redis.set(key,GlobalObject.getJsonMapper().writeValueAsString(value));
+            }
+        },
+	    EXPIRE {
+            @Override
+            public String set(RedisConnection redis,String key,Object value,long expire) throws JsonProcessingException{
+                return redis.setex(key,(int)expire,GlobalObject.getJsonMapper().writeValueAsString(value));
+            }
+        },
+	    EXPIRE_AT {
+            @Override
+            public String set(RedisConnection redis,String key,Object value,long expire) throws JsonProcessingException{
+                String result = redis.set(key,GlobalObject.getJsonMapper().writeValueAsString(value));
+                redis.expireAt(key,expire);
+                return result;
+            }
+        };
+	    public abstract String set(RedisConnection redis,String key,Object value,long expire)throws JsonProcessingException;
+	}
+	private String setJsonFromObject(String key,Object value,SetJsonFromObject action,long expire){
+	    if(value==null){
+            String nullString=null;
+            return set(key,nullString);
+        }else{
+            try{
+                return action.set(this,key,value,expire);
             }catch(JsonProcessingException e){
                 throw new JsonGenerationException(e);
             }
-		}
+        }
+	}
+	@Override
+	public String setJsonFromObject(String key, Object value) {
+	    return setJsonFromObject(key,value,SetJsonFromObject.NO_EXPIRE,0);
 	}
 	@Override
 	public String setJsonFromObjectExpire(String key,Object value,int expire){
-	    if(value==null){
-            String nullString=null;
-            return set(key,nullString);
-        }else{
-            try{
-                return setex(key,expire,GlobalObject.getJsonMapper().writeValueAsString(value));
-            }catch(JsonProcessingException e){
-                throw new JsonGenerationException(e);
-            }
-        }
+	    return setJsonFromObject(key,value,SetJsonFromObject.EXPIRE,expire);
 	}
 	@Override
     public String setJsonFromObjectExpireAt(String key,Object value,long expireAt){
-	    if(value==null){
-            String nullString=null;
-            return set(key,nullString);
-        }else{
-            try{
-                String result = set(key,GlobalObject.getJsonMapper().writeValueAsString(value));
-                expireAt(key,expireAt);
-                return result;
-            }catch(JsonProcessingException e){
-                throw new JsonGenerationException(e);
-            }
-        }
+	    return setJsonFromObject(key,value,SetJsonFromObject.EXPIRE_AT,expireAt);
 	}
 	@Override
 	public void delKeys(String keyPattern){

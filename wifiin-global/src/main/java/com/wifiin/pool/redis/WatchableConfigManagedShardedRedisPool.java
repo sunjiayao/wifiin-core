@@ -15,12 +15,15 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.Maps;
 import com.wifiin.common.GlobalObject;
 import com.wifiin.exception.JsonGenerationException;
 import com.wifiin.exception.JsonParseException;
 import com.wifiin.exception.RedisException;
 import com.wifiin.pool.WatchableConfigManagedKeyedPool;
 import com.wifiin.redis.RedisConnection;
+import com.wifiin.reflect.BeanUtil;
+import com.wifiin.reflect.getset.Getter;
 import com.wifiin.util.Help;
 import com.wifiin.util.string.ThreadLocalStringBuilder;
 
@@ -1439,22 +1442,7 @@ public class WatchableConfigManagedShardedRedisPool implements RedisConnection{
         if(value instanceof Map){
             return hmset(key,(Map)value);
         }else{
-            Class c=value.getClass();
-            Method[] methods=c.getMethods();
-            Map m=new HashMap();
-            for(int i=0,l=methods.length;i<l;i++){
-                Method method=methods[i];
-                try {
-                    Object v=method.invoke(value);
-                    if(v!=null){
-                        String mn=method.getName();
-                        mn=mn.substring(3);
-                        mn=ThreadLocalStringBuilder.builder().append(mn).replace(0,1,String.valueOf(Character.toLowerCase(mn.charAt(0)))).toString();
-                        m.put(mn, value2String(v));
-                    }
-                } catch (Exception e) {}
-            }
-            return hmset(key,m);
+            return hmset(key,BeanUtil.populateMap(value,false));
         }
     }
 
@@ -1513,47 +1501,52 @@ public class WatchableConfigManagedShardedRedisPool implements RedisConnection{
             throw new JsonParseException(e);
         }
     }
-
-    @Override
-    public String setJsonFromObject(String key,Object value){
+    private enum SetJsonFromObject{
+        NO_EXPIRE {
+            @Override
+            public String set(RedisConnection redis,String key,Object value,long expire) throws JsonProcessingException{
+                return redis.set(key,GlobalObject.getJsonMapper().writeValueAsString(value));
+            }
+        },
+        EXPIRE {
+            @Override
+            public String set(RedisConnection redis,String key,Object value,long expire) throws JsonProcessingException{
+                return redis.setex(key,(int)expire,GlobalObject.getJsonMapper().writeValueAsString(value));
+            }
+        },
+        EXPIRE_AT {
+            @Override
+            public String set(RedisConnection redis,String key,Object value,long expire) throws JsonProcessingException{
+                String result = redis.set(key,GlobalObject.getJsonMapper().writeValueAsString(value));
+                redis.expireAt(key,expire);
+                return result;
+            }
+        };
+        public abstract String set(RedisConnection redis,String key,Object value,long expire)throws JsonProcessingException;
+    }
+    private String setJsonFromObject(String key,Object value,SetJsonFromObject action,long expire){
         if(value==null){
             String nullString=null;
             return set(key,nullString);
         }else{
             try{
-                return set(key,GlobalObject.getJsonMapper().writeValueAsString(value));
+                return action.set(this,key,value,expire);
             }catch(JsonProcessingException e){
                 throw new JsonGenerationException(e);
             }
         }
+    }
+    @Override
+    public String setJsonFromObject(String key, Object value) {
+        return setJsonFromObject(key,value,SetJsonFromObject.NO_EXPIRE,0);
     }
     @Override
     public String setJsonFromObjectExpire(String key,Object value,int expire){
-        if(value==null){
-            String nullString=null;
-            return set(key,nullString);
-        }else{
-            try{
-                return setex(key,expire,GlobalObject.getJsonMapper().writeValueAsString(value));
-            }catch(JsonProcessingException e){
-                throw new JsonGenerationException(e);
-            }
-        }
+        return setJsonFromObject(key,value,SetJsonFromObject.EXPIRE,expire);
     }
     @Override
     public String setJsonFromObjectExpireAt(String key,Object value,long expireAt){
-        if(value==null){
-            String nullString=null;
-            return set(key,nullString);
-        }else{
-            try{
-                String result = set(key,GlobalObject.getJsonMapper().writeValueAsString(value));
-                expireAt(key,expireAt);
-                return result;
-            }catch(JsonProcessingException e){
-                throw new JsonGenerationException(e);
-            }
-        }
+        return setJsonFromObject(key,value,SetJsonFromObject.EXPIRE_AT,expireAt);
     }
     @Override
     public <E> E hmget(String key,Class<E> cls,String... fields) throws Exception{
@@ -1604,21 +1597,7 @@ public class WatchableConfigManagedShardedRedisPool implements RedisConnection{
         if(Help.isEmpty(fields)){
             return "0";
         }
-        Map m=new HashMap();
-        if(Help.isNotEmpty(fields)){
-            Class c=hash.getClass();
-            for(int i=0,l=fields.length;i<l;i++){
-                try{
-                    String fn=fields[i];
-                    Method getter=c.getMethod(ThreadLocalStringBuilder.builder().append("get").append(fn).replace(3,4,String.valueOf(Character.toUpperCase(fn.charAt(0)))).toString());
-                    Object v=getter.invoke(hash);
-                    if(v!=null){
-                        m.put(fields[i],value2String(v));
-                    }
-                }catch(Exception e){}
-            }
-        }
-        return hmset(key,m);
+        return hmset(key,BeanUtil.populateMap(hash,false,fields));
     }
 
     @Override

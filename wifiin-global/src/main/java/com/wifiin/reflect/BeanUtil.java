@@ -10,7 +10,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Function;
 
+import com.google.common.collect.Maps;
 import com.wifiin.reflect.exception.BeanPropertyPopulationException;
 import com.wifiin.reflect.exception.GetterGenerationException;
 import com.wifiin.reflect.exception.SetterGenerationException;
@@ -30,28 +32,91 @@ import com.wifiin.util.regex.RegexUtil;
  */
 public class BeanUtil{
     /**
+     * 返回指定类对象的所有属性getter
+     */
+    public static <O> Map<String,Getter<?,?>> getters(Class<O> clazz){
+        return GetSetUtil.getGetters(clazz);
+    }
+    /**
+     * 返回指定对象的所有属性setter
+     */
+    public static <O> Map<String,Setter<?,?>> setters(Class<O> clazz){
+        return GetSetUtil.getSetters(clazz);
+    }
+    /**
      * 从指定对象获取指定属性的值
      * @param src
      * @param property
+     * @param returnNullIfNoProp 找不到属性且本值是true时返回null
      * @return
+     * @throws GetterGenerationException 找不到属性且returnNullIfNoProp时返回null
      */
     @SuppressWarnings("unchecked")
-    public static <O,V> V get(O src,String property){
-        Getter<O,V> getter=(Getter<O,V>)GetSetUtil.getGetters(src.getClass()).get(property);
+    public static <O,V> V get(O src,String property,boolean returnNullIfNoProp){
+        Getter<O,V> getter=(Getter<O,V>)getters(src.getClass()).get(property);
         if(getter!=null){
             return getter.get(src);
         }else{
+            if(returnNullIfNoProp){
+                return null;
+            }
             throw new GetterGenerationException("there is no specified property getter method in src, or the property is not public");
         }
     }
+    /**
+     * 
+     * @param src
+     * @param property
+     * @param v
+     * @param silence 找不到属性时，silence是true，就什么也不做；silence是false，抛出异常
+     * @throws SetterGenerationException 找不到属性且silence是false时抛出
+     */
     @SuppressWarnings("unchecked")
-    public static <O,V> void set(O src,String property,V v){
-        Setter<O,V> setter=(Setter<O,V>)GetSetUtil.getSetters(src.getClass()).get(property);
+    public static <O,V> void set(O src,String property,V v,boolean silence){
+        Setter<O,V> setter=(Setter<O,V>)setters(src.getClass()).get(property);
         if(setter!=null){
             setter.set(src,v);
         }else{
-            throw new SetterGenerationException("there is no specified property setter method in src, or the property is not public");
+            if(!silence){
+                throw new SetterGenerationException("there is no specified property setter method in src, or the property is not public");
+            }
         }
+    }
+    public static Map<String,Object> populateMap(Object src,boolean populateEmpty,String... fields){
+        return populateMap(src,populateEmpty,(v)->{return v;},fields);
+    }
+    @SuppressWarnings({"unchecked","rawtypes"})
+    public static <V> Map<String,V> populateMap(Object src,boolean populateEmpty,Function<Object,V> valueConverter, String... fields){
+        Map<String,Getter<?,?>> getters=BeanUtil.getters(src.getClass());
+        Map<String,V> m=Maps.newHashMap();
+        for(int i=0,l=fields.length;i<l;i++){
+            String f=fields[i];
+            Getter getter=getters.get(f);
+            if(getter==null){
+                String k="get"+f.substring(0,1).toUpperCase()+f.substring(1);
+                getter=getters.get(k);
+            }
+            m.put(f,valueConverter.apply(getter.get(src)));
+        }
+        return m;
+    }
+    public static Map<String,Object> populateMap(Object src,boolean populateEmpty){
+        return populateMap(src,populateEmpty,(v)->{return v;});
+    }
+    @SuppressWarnings({"unchecked","rawtypes"})
+    public static <V> Map<String,V> populateMap(Object src,boolean populateEmpty,Function<Object,V> valueConverter){
+        Map<String,V> m=Maps.newHashMap();
+        for(Map.Entry<String,Getter<?,?>> entry:BeanUtil.getters(src.getClass()).entrySet()){
+            String name=entry.getKey();
+            if(name.startsWith("get")){
+                name=name.substring(3,4).toLowerCase()+name.substring(4);
+            }
+            V v=valueConverter.apply(((Getter)entry.getValue()).get(src));
+            if(populateEmpty || v!=null){
+                m.put(name,v);
+            }
+        }
+        return m;
     }
     public static <O> O populate(Object src, Class<O> cls,boolean populateEmpty, boolean deep) {
         try{
@@ -63,8 +128,8 @@ public class BeanUtil{
     @SuppressWarnings({"unchecked","rawtypes"})
     public static <O> O populate(Object src,O dest,boolean populateEmpty,boolean deep){
         Class clazz=dest.getClass();
-        Map<String,Setter<?,?>> setters=GetSetUtil.getSetters(clazz);
-        for(Entry<String,Getter<?,?>> entry:GetSetUtil.getGetters(src.getClass()).entrySet()){
+        Map<String,Setter<?,?>> setters=setters(clazz);
+        for(Entry<String,Getter<?,?>> entry:getters(src.getClass()).entrySet()){
             Setter setter=setters.get(entry.getKey());
             if(setter!=null){
                 Object value=entry.getValue();
@@ -84,7 +149,7 @@ public class BeanUtil{
     @SuppressWarnings({"unchecked","rawtypes"})
     public static <O> O populate(Map<String,Object> src,O dest,boolean populateEmpty,boolean deep){
         Class clazz=dest.getClass();
-        Map<String,Setter<?,?>> setters=GetSetUtil.getSetters(clazz);
+        Map<String,Setter<?,?>> setters=setters(clazz);
         for(Map.Entry<String,Object> entry:src.entrySet()){
             String property=entry.getKey();
             Setter setter=setters.get(property);
@@ -100,7 +165,7 @@ public class BeanUtil{
     @SuppressWarnings({"unchecked","rawtypes"})
     public static <O> O populate(Map<String,Object> src,O dest,boolean populateEmpty,boolean deep,String... properties){
         Class clazz=dest.getClass();
-        Map<String,Setter<?,?>> setters=GetSetUtil.getSetters(clazz);
+        Map<String,Setter<?,?>> setters=setters(clazz);
         for(int i=0,l=properties.length;i<l;i++){
             try{
                 String property=properties[i];

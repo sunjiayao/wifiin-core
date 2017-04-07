@@ -15,14 +15,14 @@ public class TestBeanUtil{
     @Test
     public void testBeanUtil(){
         com.wifiin.test.bean.Test t=new com.wifiin.test.bean.Test();
-        Assert.assertEquals(1,((Integer)BeanUtil.get(t,"i")).intValue());
-        Assert.assertEquals("ss",BeanUtil.get(t,"s"));
-        BeanUtil.set(t,"i",10);
-        Assert.assertEquals(10,((Integer)BeanUtil.get(t,"i")).intValue());
-        BeanUtil.set(t,"s","new");
-        Assert.assertEquals("new",BeanUtil.get(t,"s"));
-        BeanUtil.set(t,"l",100L);
-        Assert.assertEquals(100L,((Long)BeanUtil.get(t,"l")).longValue());
+        Assert.assertEquals(1,((Integer)BeanUtil.get(t,"i",false)).intValue());
+        Assert.assertEquals("ss",BeanUtil.get(t,"s",false));
+        BeanUtil.set(t,"i",10,false);
+        Assert.assertEquals(10,((Integer)BeanUtil.get(t,"i",false)).intValue());
+        BeanUtil.set(t,"s","new",false);
+        Assert.assertEquals("new",BeanUtil.get(t,"s",false));
+        BeanUtil.set(t,"l",100L,false);
+        Assert.assertEquals(100L,((Long)BeanUtil.get(t,"l",false)).longValue());
 //        BeanUtil.populate(src,cls,populateEmpty,deep)
     }
     @Test

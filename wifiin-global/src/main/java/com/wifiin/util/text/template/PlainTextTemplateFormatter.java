@@ -153,7 +153,7 @@ public class PlainTextTemplateFormatter<E> implements TextTemplateFormatter<E>{
                 value=((Map)data).get(prop);
             }else{
                 try{
-                    value=BeanUtil.get(data,prop);
+                    value=BeanUtil.get(data,prop,false);
                 }catch(Exception e){
                     throw new IllegalArgumentException("the parameter must be a Map or a custom composite type, but it is a "+data.getClass(),e);
                 }
