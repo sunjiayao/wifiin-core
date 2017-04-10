@@ -1,6 +1,7 @@
 package com.wifiin.multilanguage.aop;
 
 import java.lang.annotation.Annotation;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
@@ -42,18 +43,36 @@ public class MultiLangAspect{
             String app=multilang.app();
             String multiLangKey=multiLangKey(multilang,result.getClass());
             String lang=lang(point);
-            BeanUtil.populate(queryLang(app,multiLangKey,lang,BeanUtil.get(result,ID,false)),result,false,false);
+            populate(result,app,multiLangKey,lang);
         }
         return result;
     }
-    
+    @SuppressWarnings({"unchecked","rawtypes"})
+    private void populate(Object result,String app,String multiLangKey,String lang){
+        if(result instanceof Collection){
+            ((Collection)result).forEach((r)->{
+                populate(r,app,multiLangKey,lang);
+            });
+        }else if(result instanceof Map){
+            Map m=(Map)result;
+            Map l=queryLang(app,multiLangKey,lang,m.get(ID));
+            if(Help.isNotEmpty(l)){
+                m.putAll(l);
+            }
+        }else{
+            BeanUtil.populate(queryLang(app,multiLangKey,lang,BeanUtil.get(result,ID,false)),result,false,false);
+        }
+    }
     private Map<String,Object> queryLang(String app,String key,String lang,Object id){
+        if(Help.isEmpty(id)){
+            throw new LanguageQueryException("record id is not found from returnd value");
+        }
         String cacheKey=CacheKeyGenerator.generateKey(MULTI_LANG_CACHE_PREFIX,app,key,id,lang);
         return heapCache.get(key,()->{
             Map<String,?> result=null;
             result=redis.getJsonMap(cacheKey);
             if(Help.isEmpty(result)){
-                MultiLangResponse response=rpc.queryLang(new MultiLangData(app,lang,key));
+                MultiLangResponse response=rpc.queryLang(new MultiLangData(app,lang,key+'.'+id));
                 if(response.getStatus()>0){
                     result = response.getFieldValues();
                     redis.setex(cacheKey,WifiinConstant.getCacheLifeSeconds(),response.getValue());
