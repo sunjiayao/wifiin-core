@@ -8,9 +8,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Maps;
 import com.wifiin.common.GlobalObject;
 import com.wifiin.multilanguage.aop.exception.LanguageQueryException;
-import com.wifiin.multilanguage.aop.rpc.MultiLangRPC;
-import com.wifiin.multilanguage.aop.rpc.model.vo.MultiLangData;
-import com.wifiin.multilanguage.aop.rpc.model.vo.MultiLangResponse;
+import com.wifiin.multilanguage.rpc.MultiLangRPC;
+import com.wifiin.multilanguage.rpc.model.vo.MultiLangData;
+import com.wifiin.multilanguage.rpc.model.vo.MultiLangResponse;
 
 @Component
 public class MockMultiLangRPC implements MultiLangRPC{

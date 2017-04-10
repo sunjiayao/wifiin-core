@@ -2,7 +2,17 @@ package com.wifiin.cron;
 
 import java.util.Date;
 
+/**
+ * 定时任务对象，包含定时任务名、执行周期表达式、是否可并发执行等
+ * @author Running
+ *
+ */
 public interface CronTask extends Runnable{
+    /**
+     * 定时任务名
+     * @return
+     */
+    public String name();
     /**
      * 当前任务是否正在执行，可以重写此方法实现分布式定时器,默认是false
      * @return

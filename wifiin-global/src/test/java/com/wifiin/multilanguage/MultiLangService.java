@@ -23,5 +23,4 @@ public class MultiLangService{
     public TestMultiLangModel execute(TestMultiLangModelWithLang model){
         return new TestMultiLangModel();
     }
-    
 }

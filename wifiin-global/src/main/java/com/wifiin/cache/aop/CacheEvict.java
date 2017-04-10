@@ -14,5 +14,6 @@ import java.lang.annotation.Target;
 public @interface CacheEvict{
     String[] keyPattern();
     KeyParams keyParams();
+    int[] cacheKeyArgs() default {};
     boolean heapCache();
 }

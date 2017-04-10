@@ -16,12 +16,11 @@ import com.wifiin.cache.HeapCache;
 import com.wifiin.constant.WifiinConstant;
 import com.wifiin.multilanguage.aop.exception.LanguageNotFoundException;
 import com.wifiin.multilanguage.aop.exception.LanguageQueryException;
-import com.wifiin.multilanguage.aop.rpc.MultiLangRPC;
-import com.wifiin.multilanguage.aop.rpc.model.vo.MultiLangData;
-import com.wifiin.multilanguage.aop.rpc.model.vo.MultiLangResponse;
+import com.wifiin.multilanguage.rpc.MultiLangRPC;
+import com.wifiin.multilanguage.rpc.model.vo.MultiLangData;
+import com.wifiin.multilanguage.rpc.model.vo.MultiLangResponse;
 import com.wifiin.redis.RedisConnection;
 import com.wifiin.reflect.BeanUtil;
-import com.wifiin.reflect.getset.Getter;
 import com.wifiin.util.Help;
 
 @Component
@@ -36,7 +35,7 @@ public class MultiLangAspect{
     @Autowired
     private MultiLangRPC rpc;
     
-    @Around(value="@annotation(com.wifiin.multilanguage.MultiLangMethod) && @annotation(multilang)",argNames="multilang")
+    @Around(value="@annotation(com.wifiin.multilanguage.aop.MultiLangMethod) && @annotation(multilang)",argNames="multilang")
     public Object languageConvert(ProceedingJoinPoint point,MultiLangMethod multilang) throws Throwable{
         Object result=point.proceed();
         if(result!=null){
