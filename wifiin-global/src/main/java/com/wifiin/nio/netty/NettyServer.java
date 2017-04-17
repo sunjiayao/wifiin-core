@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 
 import com.google.common.collect.Lists;
 import com.wifiin.log.LoggerFactory;
+import com.wifiin.nio.OutputObject;
 import com.wifiin.nio.exception.NioException;
 import com.wifiin.nio.netty.channel.codec.AbstractCommonCodec;
 import com.wifiin.nio.netty.util.NettyUtil;
@@ -44,7 +45,7 @@ public class NettyServer<I,O extends OutputObject,T extends AbstractCommonCodec<
     private Channel channel;
     public NettyServer(NettyServerParams<I,O,T> params){
         channelEventLoopGroups=Lists.newArrayList();
-        acceptorEventLoopGroup=params.newEventLoopGroup(ACCEPTOR_EVENT_LOOP_GROUP_NAME);
+        acceptorEventLoopGroup=params.newAcceptorEventLoopGroup(ACCEPTOR_EVENT_LOOP_GROUP_NAME);
         selectorEventLoopGroup=params.newEventLoopGroup(SELECTOR_EVENT_LOOP_GROUP_NAME);
         this.params=params;
         ShutdownHookUtil.addHook(()->{
@@ -77,7 +78,7 @@ public class NettyServer<I,O extends OutputObject,T extends AbstractCommonCodec<
                                   ch.pipeline()
                                     .addLast(group,
                                             new IdleStateHandler(0, 0, params.maxIdleSeconds()),
-                                            new NettyConnectManageHandler("SERVER",params.idleChannelChecker()),
+                                            new NettyConnectManageHandler("SERVER",params.channelConnectChecker()),
                                             channelHandlers[channelHandlers.length-1]);
                               }
                           }

@@ -25,7 +25,7 @@ public class RedisSentinelPool extends Pool<ShardedJedis> {
     private static final ExecutorService executor = Executors.newCachedThreadPool();
     private Logger log = LoggerFactory.getLogger(RedisSentinelPool.class);
     
-    private ShardedJedisPool shardedJedisPool;
+    private volatile ShardedJedisPool shardedJedisPool;
     private Set<String> sentinel;
     private String password;
     private int timeout;
@@ -137,9 +137,11 @@ public class RedisSentinelPool extends Pool<ShardedJedis> {
     }
     
     private void switchShardedPool(){
-        ShardedJedisPool old = RedisSentinelPool.this.shardedJedisPool;
-        RedisSentinelPool.this.shardedJedisPool = new ShardedJedisPool(poolConfig, list);
+        log.info("RedisSentinelPool.switchShardedPool:start");
+        ShardedJedisPool old = this.shardedJedisPool;
+        this.shardedJedisPool = new ShardedJedisPool(poolConfig, list);
         old.close();
+        log.info("RedisSentinelPool.switchShardedPool:end");
     }
     
     private void psubscribe(Map<String, String> hostAndPort){

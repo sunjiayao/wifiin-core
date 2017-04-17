@@ -2,12 +2,19 @@ package com.wifiin.cron;
 
 import java.util.Date;
 
+import org.slf4j.Logger;
+
+import com.wifiin.log.LoggerFactory;
+import com.wifiin.util.Help;
+
 /**
  * 定时任务对象，包含定时任务名、执行周期表达式、是否可并发执行等
  * @author Running
  *
  */
 public interface CronTask extends Runnable{
+    static final Logger log=LoggerFactory.getLogger(CronTask.class);
+    static final ThreadLocal<String> cronExpr=new ThreadLocal<>();
     /**
      * 定时任务名
      * @return
@@ -47,22 +54,38 @@ public interface CronTask extends Runnable{
      * @param executedTime
      */
     public default void executedAt(Date executedTime){
-        
+        log.info("CronTask.executed:{};{}",name(),cron0());
     }
     /**
      * 类CronTaskTrigger会用这个方法得到cron表达式
      * @return
      */
     public String cron();
+    /**
+     * 不要覆盖本方法
+     * @return
+     */
+    public default String cron0(){
+        String expr=cronExpr.get();
+        if(Help.isEmpty(expr)){
+            expr=cron();
+            cronExpr.set(expr);
+        }
+        return expr;
+    }
     @Override
     public default void run(){
-        if(executable()){
-            try{
-                execute();
-                executedAt(new Date());
-            }finally{
-                clean();
+        try{
+            if(executable()){
+                try{
+                    execute();
+                    executedAt(new Date());
+                }finally{
+                    clean();
+                }
             }
+        }catch(Exception e){
+            log.warn("CronTask.run:{},{}",name(),cron0(),e);
         }
     }
 }

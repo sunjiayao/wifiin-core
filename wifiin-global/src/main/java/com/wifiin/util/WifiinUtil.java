@@ -438,7 +438,7 @@ public class WifiinUtil {
      * 为登录激活接口的verify字段创建值
      * 
      * @param device
-     *            请求报文的deviceId字段，安卓是imei，ios7以下是udid,ios7以上是openUdid
+     *            请求报文的deviceId字段，安卓是mac，ios7以下是udid,ios7以上是openUdid
      * @param time
      *            格式是yyyyMMddHHmmssSSS的当时间，取当前系统时间即可。服务器在验证生成的verify是否合法时，
      *            会认为在验证时刻的时间前后24小时的time都是合法时间
@@ -484,12 +484,11 @@ public class WifiinUtil {
      * 验证激活接口的verify字段值
      * 
      * @param device
-     *            请求报文的deviceId字段，安卓是imei，ios7以下是udid,ios7以上是openUdid
+     *            请求报文的deviceId字段，安卓是mac，ios7以下是udid,ios7以上是openUdid
      * @param time
      *            格式是yyyyMMddHHmmssSSS的当时间，取当前系统时间即可。服务器在验证生成的verify是否合法时，
      *            会认为在验证时刻的时间前后24小时的time都是合法时间
-     * @param code
-     *            待验证的值
+     * @param code 待验证的值
      * @return
      * @throws UnsupportedEncodingException
      */

@@ -1,6 +1,7 @@
 package com.wifiin.nio.netty.util;
 
 import java.net.SocketAddress;
+import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 
@@ -8,23 +9,28 @@ import com.wifiin.log.LoggerFactory;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 
 public class NettyUtil{
     public static final String NETTY_LOG_NAME = "NettyLogName";
     private static final Logger log=LoggerFactory.getLogger(NETTY_LOG_NAME);
     public static void closeChannel(ChannelHandlerContext ctx){
-        closeChannel(ctx.channel());
+        final String addrRemote = parseChannelRemoteAddr(ctx.channel());
+        ctx.close().addListener((ChannelFuture future)->{
+            log.info("closeChannel: close the connection to remote address[{}] result: {}", addrRemote,
+                future.isSuccess());
+        });
     }
-    public static void closeChannel(Channel channel) {
+    public static ChannelFuture closeChannel(Channel channel) {
         final String addrRemote = parseChannelRemoteAddr(channel);
-        channel.close().addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                log.info("closeChannel: close the connection to remote address[{}] result: {}", addrRemote,
-                    future.isSuccess());
-            }
+        return channel.close().addListener((ChannelFuture future)->{
+            log.info("closeChannel: close the connection to remote address[{}] result: {}", addrRemote,
+                future.isSuccess());
+        });
+    }
+    public static ChannelFuture closeChannel(Channel channel,Consumer<ChannelFuture> consumer){
+        return closeChannel(channel).addListener((ChannelFuture cf)->{
+            consumer.accept(cf);
         });
     }
     public static String parseChannelRemoteAddr(ChannelHandlerContext ctx){

@@ -1,7 +1,6 @@
 package com.wifiin.cache.aop;
 
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
@@ -86,7 +85,7 @@ public class CacheAspect{
             return format.parse(value,((MethodSignature)point.getSignature()).getReturnType());
         }
     }
-    @After(value="@annotation(com.wifiin.cache.aop.CacheEvict) && @annotation(evict)",argNames="evict")
+    @Around(value="@annotation(com.wifiin.cache.aop.CacheEvict) && @annotation(evict)",argNames="evict")
     public Object evict(ProceedingJoinPoint point, CacheEvict evict)throws Throwable{
         Object result=point.proceed();
         String[] keys=evict.keyPattern();

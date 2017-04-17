@@ -13,5 +13,10 @@ public class TestMultiLangAspect{
         System.out.println(service.execute("","en-US"));
         System.out.println(service.execute(new TestMultiLangModel(),"en-US"));
         System.out.println(service.execute(new TestMultiLangModelWithLang()));
+        
+        System.out.println(service.executeList("en-US"));
+        System.out.println(service.executeList("","en-US"));
+        System.out.println(service.executeList(new TestMultiLangModel(),"en-US"));
+        System.out.println(service.executeList(new TestMultiLangModelWithLang()));
     }
 }

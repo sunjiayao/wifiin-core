@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.wifiin.log.LoggerFactory;
+import com.wifiin.nio.OutputObject;
 import com.wifiin.nio.netty.channel.codec.AbstractCommonCodec;
 import com.wifiin.nio.netty.util.NettyUtil;
 import com.wifiin.util.MachineUtil;
@@ -16,19 +17,14 @@ import com.wifiin.util.ShutdownHookUtil;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.timeout.IdleState;
-import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 
@@ -69,7 +65,7 @@ public class NettyClient<I,O extends OutputObject,T extends AbstractCommonCodec<
                     ch.pipeline()
                       .addLast(group,
                                new IdleStateHandler(0, 0, params.maxIdleSeconds()),
-                               new NettyConnectManageHandler("CLIENT",params.idleChannelChecker()),
+                               new NettyConnectManageHandler("CLIENT",params.channelConnectChecker()),
                                channelHandlers[i]);
                 }
             }
@@ -94,7 +90,6 @@ public class NettyClient<I,O extends OutputObject,T extends AbstractCommonCodec<
             return ch;
         }else{
             closeChannel(ch);
-            channels.remove(addr,ch);
         }
         return channels.computeIfAbsent(addr,(ad)->{
             long timeout=params.connectionTimeoutMillis();
@@ -102,7 +97,7 @@ public class NettyClient<I,O extends OutputObject,T extends AbstractCommonCodec<
 //                                      .syncUninterruptibly();
             if(cf.awaitUninterruptibly(timeout) && channelOK(cf.channel())){
                 log.info("createChannel: connect remote host[{}] success, {}", ad, cf.toString());
-                return cf.channel();
+                return new ChannelWrapper(addr,cf.channel(),channels);
             }else{
                 log.warn("createChannel: connect remote host[" + ad + "] failed, " + cf.toString(), cf.cause());
                 closeChannel(cf.channel());
@@ -110,7 +105,6 @@ public class NettyClient<I,O extends OutputObject,T extends AbstractCommonCodec<
             }
         });
     }
-    
     private boolean channelOK(Channel ch){
         return ch!=null && ch.isActive();
     }

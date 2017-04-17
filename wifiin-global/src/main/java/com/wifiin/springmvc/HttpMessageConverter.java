@@ -102,7 +102,7 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
         }
     }
     private HttpServletRequest request(){
-        return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        return SpringMVCContext.getRequest();
     }
     /**
      * 读取请求报文字节数组
@@ -236,8 +236,9 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
         return can(type,contextClass,mediaType,responseMediaTypes,"canWrite");
     }
     private boolean can(Type type, Class contextClass, MediaType mediaType,List<MediaType> mediaTypes,String can){
+        String uri=this.request().getRequestURI();
         if(log.isDebugEnabled()){
-            log.debug("EncryptionHttpMessageConverter."+can+":"+mediaType+";"+this.requestMediaTypes);
+            log.debug("EncryptionHttpMessageConverter."+can+":"+mediaType+";"+this.requestMediaTypes+';'+uri);
         }
         if(Help.isNotEmpty(mediaTypes)){
             for(int i=0,l=mediaTypes.size();i<l;i++){

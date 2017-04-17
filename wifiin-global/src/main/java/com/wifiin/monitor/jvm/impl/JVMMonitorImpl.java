@@ -1,5 +1,6 @@
 package com.wifiin.monitor.jvm.impl;
 
+import java.lang.management.ManagementFactory;
 import java.util.Map;
 
 import com.codahale.metrics.Gauge;
@@ -7,6 +8,7 @@ import com.codahale.metrics.JvmAttributeGaugeSet;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.MetricSet;
+import com.codahale.metrics.jvm.BufferPoolMetricSet;
 import com.codahale.metrics.jvm.ClassLoadingGaugeSet;
 import com.codahale.metrics.jvm.FileDescriptorRatioGauge;
 import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
@@ -20,7 +22,7 @@ import com.wifiin.util.string.ThreadLocalStringBuilder;
 public class JVMMonitorImpl implements JVMMonitor{
     private MetricRegistry registry=new MetricRegistry();
     public JVMMonitorImpl(){
-//        registerAll("buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()), registry);
+        registerAll("buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()), registry);
         registerAll("classloading",new ClassLoadingGaugeSet(),registry);
         register("file.descriptor.ratio",new FileDescriptorRatioGauge(),registry);
         registerAll("gc", new GarbageCollectorMetricSet(), registry);

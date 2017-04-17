@@ -18,15 +18,18 @@ public class TestPlainTextTemplateFormatter{
         data.put("h","H");
         data.put("s"," ");
         data.put("w","W");
+        System.out.println(TextTemplateFormatterType.PLAIN_TEXT.formatter(template,"${","}").format(data));
         Assert.assertEquals(expected,TextTemplateFormatterType.PLAIN_TEXT.formatter(template,"${","}").format(data));
         template="${h}ello${regex:^\\s$}${w}orld";
         data.put("\t"," ");
         Assert.assertEquals(expected,TextTemplateFormatterType.PLAIN_TEXT.formatter(template,"${","}").format(data));
         template="${}ello${}${}orld";
+        System.out.println(TextTemplateFormatterType.PLAIN_TEXT.formatter(template,"${","}").format(new String[]{"H"," ","W"}));
         Assert.assertEquals(expected,TextTemplateFormatterType.PLAIN_TEXT.formatter(template,"${","}").format(new String[]{"H"," ","W"}));
         template="${0}ello${1}${2}orld";
         Assert.assertEquals(expected,TextTemplateFormatterType.PLAIN_TEXT.formatter(template,"${","}").format(new String[]{"H"," ","W"}));
         template="${1}ello${2}${0}orld";
+        System.out.println(TextTemplateFormatterType.PLAIN_TEXT.formatter(template,"${","}").format(new String[]{"W","H"," "}));
         Assert.assertEquals(expected,TextTemplateFormatterType.PLAIN_TEXT.formatter(template,"${","}").format(new String[]{"W","H"," "}));
         template="#h#ello#s##w#orld";
         Assert.assertEquals(expected,TextTemplateFormatterType.PLAIN_TEXT.formatter(template,"#","#").format(data));

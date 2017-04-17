@@ -1,12 +1,14 @@
 package com.wifiin.nio.netty.channel.codec;
 
+import java.util.Map;
 import java.util.function.Consumer;
 
-import com.wifiin.nio.exception.NioException;
-import com.wifiin.nio.netty.OutputObject;
+import org.apache.curator.shaded.com.google.common.collect.Maps;
+
+import com.wifiin.nio.OutputObject;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.Signal;
@@ -64,6 +66,7 @@ public abstract class AbstractCommonCodec<I,O extends OutputObject> extends Simp
     /**
      * 业务逻辑在这里
      * @param i 解析得到的报文对象
+     * @param channelId channel的惟一标识，来自Channel.id().asLongText();
      * @return 业务处理结果，如果返回值是OuterObject.ACCOMPLISHED表示不需要将处理结果写到对端，程序将忽略这个结果
      */
     protected abstract O execute(I i);
@@ -73,7 +76,6 @@ public abstract class AbstractCommonCodec<I,O extends OutputObject> extends Simp
      * @param buf 序列化后的字节存在这里
      */
     protected abstract void encode(O o,ByteBuf buf);
-    
     @Override
     protected final void channelRead0(ChannelHandlerContext ctx,ByteBuf msg) throws Exception{
         buf.setCumulation(msg);
@@ -84,11 +86,12 @@ public abstract class AbstractCommonCodec<I,O extends OutputObject> extends Simp
     }
     private void execute(ChannelHandlerContext ctx,I i){
         O o=execute(i);
-        if(o==OutputObject.ACCOMPLISHED){
-            return;
+        if(o==OutputObject.CLOSE_CHANNEL){
+            ctx.close();
+        }else if(o!=OutputObject.ACCOMPLISHED){
+            ByteBuf response=ctx.alloc().buffer();
+            encode(o,response);
+            ctx.writeAndFlush(response);
         }
-        ByteBuf response=ctx.alloc().buffer();
-        encode(o,response);
-        ctx.writeAndFlush(response);
     }
 }
