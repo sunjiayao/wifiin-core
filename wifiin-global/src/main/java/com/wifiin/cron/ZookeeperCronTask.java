@@ -8,6 +8,11 @@ import org.apache.curator.framework.recipes.leader.LeaderLatch;
 import com.wifiin.config.ConfigManager;
 import com.wifiin.cron.exception.CronException;
 
+/**
+ * zookeeper定时任务
+ * @author Running
+ *
+ */
 public abstract class ZookeeperCronTask implements CronTask{
     private ConfigManager zkManager;
     private String leaderPath;

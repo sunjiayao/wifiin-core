@@ -2,6 +2,15 @@ package com.wifiin.cron;
 
 import java.io.Serializable;
 
+/**
+ * zookeeper定时任务初始化参数
+ * namespace,zk的命名空间
+ * retryIntervalMs重试连接周期毫秒数
+ * connectString 连接zk的ip:port
+ * leaderPath如果可以并发执行，用来确认是否有其它线程或进程在执行
+ * @author Running
+ *
+ */
 public class ZookeeperCronTaskInitParams implements Serializable{
     /**
      * 
