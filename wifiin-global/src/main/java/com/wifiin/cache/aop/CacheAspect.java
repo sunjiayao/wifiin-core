@@ -29,17 +29,30 @@ public class CacheAspect{
     @Around(value="@annotation(com.wifiin.cache.aop.Cacheable) && @annotation(cacheable)",argNames="cacheable")
     public Object cache(ProceedingJoinPoint point, Cacheable cacheable)throws Throwable{
         String key=key(cacheable.keyPattern(),cacheKeyArgs(cacheable.cacheKeyArgs(),point.getArgs()));
-        if(cacheable.heapCache()){
-            String k=key;
-            return heapCache.get(k,()->{
+        switch(cacheable.cacheType()){
+        case REDIS:
+            return result(key,point,cacheable.format(),cacheable.expire());
+        case HEAP:
+            return heapCache.get(key,()->{
+                Object result=null;
                 try{
-                    return result(k,point,cacheable.format(),cacheable.expire());
+                    result=point.proceed();
+                }catch(Throwable e){
+                    throw new CacheAOPException(e);
+                }
+                if(Help.isNotEmpty(result)){
+                    return result;
+                }
+                return null;
+            });
+        default:
+            return heapCache.get(key,()->{
+                try{
+                    return result(key,point,cacheable.format(),cacheable.expire());
                 }catch(Throwable e){
                     throw new CacheAOPException(e);
                 }
             });
-        }else{
-            return result(key,point,cacheable.format(),cacheable.expire());
         }
     }
     private Object cacheKeyArgs(int[] argIdxes,Object[] args){

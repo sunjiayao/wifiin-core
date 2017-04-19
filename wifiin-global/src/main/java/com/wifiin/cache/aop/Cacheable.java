@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 public @interface Cacheable{
     String keyPattern() default "";
     int expire() default 0;
-    boolean heapCache() default false;
+    CacheType cacheType() default CacheType.REDIS;
     int[] cacheKeyArgs() default {};
     CachedDataFormat format() default CachedDataFormat.PLAIN_TEXT;
 }
