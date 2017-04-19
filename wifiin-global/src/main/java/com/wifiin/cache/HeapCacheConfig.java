@@ -1,7 +1,6 @@
 package com.wifiin.cache;
 
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.Weigher;
@@ -10,8 +9,8 @@ public class HeapCacheConfig{
     private long maxSize=1000_0000;
     private int initSize=1024;
     private int concurrencyLevel=Runtime.getRuntime().availableProcessors();
-    private long expirePeriod=1;
-    private TimeUnit expireTimeUnit=TimeUnit.MILLISECONDS;
+    private long expirePeriod=5;
+    private TimeUnit expireTimeUnit=TimeUnit.SECONDS;
     private RefType keyRef=RefType.STRONG;
     private RefType valueRef=RefType.STRONG;
     private Class<Weigher> weigherClass;
