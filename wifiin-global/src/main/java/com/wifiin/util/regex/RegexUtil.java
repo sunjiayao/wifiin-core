@@ -158,6 +158,9 @@ public class RegexUtil {
 	public static boolean isHex(CharSequence src){
 		return getRegex("^[a-fA-F0-9]+$").matcher(src).matches();
 	}
+	public static boolean isHex(CharSequence src,int length){
+	    return getRegex("^[a-z0-9]{"+length+"}$").matcher(src.toString().toLowerCase()).matches();
+	}
 	/**
 	 * 
 	 * @param src

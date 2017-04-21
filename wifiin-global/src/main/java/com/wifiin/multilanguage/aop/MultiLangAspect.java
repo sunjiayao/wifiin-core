@@ -9,7 +9,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.stereotype.Component;
 
 import com.wifiin.cache.CacheKeyGenerator;
@@ -31,10 +31,15 @@ public class MultiLangAspect{
     private static final String LANG="lang";
     private static final String ID="id";
     private HeapCache<String,Map<String,Object>> heapCache=HeapCache.<String,Map<String,Object>>getDefaultInstance("multilang");
-    @Autowired
-    private RedisConnection redis;
-    @Autowired
-    private MultiLangRPC rpc;
+
+    @Lookup
+    public RedisConnection redis(){
+        return null;
+    }
+    @Lookup
+    public MultiLangRPC multiLangRPC(){
+        return null;
+    }
     
     @Around(value="@annotation(com.wifiin.multilanguage.aop.MultiLangMethod) && @annotation(multilang)",argNames="multilang")
     public Object languageConvert(ProceedingJoinPoint point,MultiLangMethod multilang) throws Throwable{
@@ -65,17 +70,17 @@ public class MultiLangAspect{
     }
     private Map<String,Object> queryLang(String app,String key,String lang,Object id){
         if(Help.isEmpty(id)){
-            throw new LanguageQueryException("record id is not found from returnd value");
+            throw new LanguageQueryException("record id is not found from returned value");
         }
         String cacheKey=CacheKeyGenerator.generateKey(MULTI_LANG_CACHE_PREFIX,app,key,id,lang);
         return heapCache.get(key,()->{
             Map<String,?> result=null;
-            result=redis.getJsonMap(cacheKey);
+            result=redis().getJsonMap(cacheKey);
             if(Help.isEmpty(result)){
-                MultiLangResponse response=rpc.queryLang(new MultiLangData(app,lang,key+'.'+id));
+                MultiLangResponse response=multiLangRPC().queryLang(new MultiLangData(app,lang,key+'.'+id));
                 if(response.getStatus()>0){
                     result = response.getFieldValues();
-                    redis.setex(cacheKey,WifiinConstant.getCacheLifeSeconds(),response.getValue());
+                    redis().setex(cacheKey,WifiinConstant.getCacheLifeSeconds(),response.getValue());
                 }else{
                     throw new LanguageQueryException(response.getStatus());
                 }

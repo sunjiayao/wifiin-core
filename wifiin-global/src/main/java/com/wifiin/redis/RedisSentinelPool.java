@@ -2,6 +2,8 @@ package com.wifiin.redis;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -139,6 +141,13 @@ public class RedisSentinelPool extends Pool<ShardedJedis> {
     private void switchShardedPool(){
         log.info("RedisSentinelPool.switchShardedPool:start");
         ShardedJedisPool old = this.shardedJedisPool;
+        Collections.sort(list,(Comparator<JedisShardInfo>)(JedisShardInfo i1, JedisShardInfo i2)->{
+            int r = i1.getHost().compareTo(i2.getHost());
+            if(r==0){
+                r=i1.getPort()-i2.getPort();
+            }
+            return r;
+        });
         this.shardedJedisPool = new ShardedJedisPool(poolConfig, list);
         old.close();
         log.info("RedisSentinelPool.switchShardedPool:end");
