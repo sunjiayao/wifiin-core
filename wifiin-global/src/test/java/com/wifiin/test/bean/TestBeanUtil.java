@@ -24,6 +24,53 @@ public class TestBeanUtil{
         BeanUtil.set(t,"l",100L,false);
         Assert.assertEquals(100L,((Long)BeanUtil.get(t,"l",false)).longValue());
 //        BeanUtil.populate(src,cls,populateEmpty,deep)
+        int value=10000;
+        TestBean tb=new TestBean(value);
+        Assert.assertEquals(value,((Integer)BeanUtil.get(tb,"i",true)).intValue());
+        Assert.assertEquals(value,((Integer)BeanUtil.get(tb,"wrappedI",true)).intValue());
+        value=2418;
+        BeanUtil.set(tb,"i",value,false);
+        Assert.assertEquals(value,tb.getI());
+        String s="helloworld";
+        BeanUtil.set(tb,"s",s,false);
+        Assert.assertEquals(s,tb.getS());
+        BeanUtil.set(tb,"s",null,false);
+        Assert.assertEquals(null,tb.getS());
+        value=99999;
+        BeanUtil.set(tb,"wrappedI",Integer.valueOf(value),false);
+        Assert.assertEquals(value,tb.getWrappedI().intValue());
+        value=33333;
+        BeanUtil.set(tb,"wrappedI",value,false);
+        Assert.assertEquals(value,tb.getWrappedI().intValue());
+        BeanUtil.set(tb,"wrappedI",null,false);
+        Assert.assertEquals(null,tb.getWrappedI());
+    }
+    public static class TestBean{
+        private int i;
+        private Integer wrappedI;
+        private String s;
+        public TestBean(int i){
+            this.i=i;
+            this.wrappedI=i;
+        }
+        public int getI(){
+            return i;
+        }
+        public void setI(int i){
+            this.i=i;
+        }
+        public Integer getWrappedI(){
+            return wrappedI;
+        }
+        public void setWrappedI(Integer i){
+            this.wrappedI=i;
+        }
+        public String getS(){
+            return s;
+        }
+        public void setS(String s){
+            this.s=s;
+        }
     }
     @Test
     public void testPopulate() throws JsonProcessingException{

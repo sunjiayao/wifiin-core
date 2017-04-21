@@ -11,6 +11,7 @@ import com.google.common.collect.Maps;
 import com.wifiin.util.string.ThreadLocalStringBuilder;
 
 import javassist.CannotCompileException;
+import javassist.ClassClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtNewConstructor;
@@ -45,6 +46,12 @@ public class GetSetUtil{
             .put(Float.class,".floatValue")
             .put(Double.class,".doubleValue")
             .build();
+    static{
+        ClassClassPath ccpath = new ClassClassPath(Getter.class);
+        CLASS_POOL.insertClassPath(ccpath);
+        ccpath=new ClassClassPath(Setter.class);
+        CLASS_POOL.insertClassPath(ccpath);
+    }
     private static Class getClass(Class clazz){
         Class c=PRIMITIVE_WRAPPER_MAP.get(clazz);
         return c==null?clazz:c;
@@ -83,7 +90,7 @@ public class GetSetUtil{
         String genericXetterName=ThreadLocalStringBuilder.builder().append(superInterfaceName).append("<").append(clazz.getName()).append(",").append(propertyWrappedType.getName()).append(">").toString();
         xetterClass.setGenericSignature(new SignatureAttribute.TypeVariable(genericXetterName).encode());
         xetterClass.addInterface(superInterface);
-        String xetBody=generateXetBody(clazz,propertyWrappedType,propertyName,method,getter);
+        String xetBody=generateXetBody(clazz,propertyWrappedType,propertyType,propertyName,method,getter);
         xetterClass.addMethod(CtNewMethod.make(xetBody, xetterClass));
         if(!getter){
             String propertyTypeBody=ThreadLocalStringBuilder.builder()
@@ -97,13 +104,13 @@ public class GetSetUtil{
         xetterClass.addConstructor(CtNewConstructor.make(constructorBody,xetterClass));
         return xetterClass.toClass(clazz.getClassLoader(),clazz.getProtectionDomain()).newInstance();
     }
-    private static <O,V> String generateXetBody(Class<O> clazz,Class<V> propertyWrappedType,String propertyName,boolean method,boolean getter){
-        return getter?generateGetBody(clazz,propertyWrappedType,propertyName,method):generateSetBody(clazz,propertyWrappedType,propertyName,method);
+    private static <O,V> String generateXetBody(Class<O> clazz,Class<V> propertyWrappedType,Class propertyType,String propertyName,boolean method,boolean getter){
+        return getter?generateGetBody(clazz,propertyWrappedType,propertyType,propertyName,method):generateSetBody(clazz,propertyWrappedType,propertyType,propertyName,method);
     }
-    private static <O,V> String generateGetBody(Class<O> clazz,Class<V> propertyWrappedType,String propertyName,boolean method){
+    private static <O,V> String generateGetBody(Class<O> clazz,Class<V> propertyWrappedType,Class propertyType,String propertyName,boolean method){
         StringBuilder getterBuilder=ThreadLocalStringBuilder.builder();
         getterBuilder.append("public Object get(Object o){");
-        if(WRAPPED_VALUE_METHOD_MAP.containsKey(propertyWrappedType)){
+        if(WRAPPED_VALUE_METHOD_MAP.containsKey(propertyWrappedType) && !propertyType.equals(propertyWrappedType)){
             getterBuilder.append("return ").append(propertyWrappedType.getName()).append(".valueOf(((").append(clazz.getName()).append(")o).").append(propertyName).append(method?"());":");");
         }else{
             getterBuilder.append("return ((").append(clazz.getName()).append(")o).").append(propertyName).append(method?"();":";");
@@ -111,12 +118,12 @@ public class GetSetUtil{
         getterBuilder.append("}").toString();
         return getterBuilder.toString();
     }
-    private static <O,V> String generateSetBody(Class<O> clazz,Class<V> propertyWrappedType,String propertyName,boolean method){
+    private static <O,V> String generateSetBody(Class<O> clazz,Class<V> propertyWrappedType,Class propertyType,String propertyName,boolean method){
         StringBuilder setterBuilder=ThreadLocalStringBuilder.builder();
         setterBuilder.append("public void set(Object o, Object v){");
         setterBuilder.append("((").append(clazz.getName()).append(")o).").append(propertyName);
         String unwrapMethodName=WRAPPED_VALUE_METHOD_MAP.get(propertyWrappedType);
-        if(unwrapMethodName!=null){
+        if(unwrapMethodName!=null && !propertyType.equals(propertyWrappedType)){
             if(method){
                 setterBuilder.append("(((").append(propertyWrappedType.getName()).append(")v)").append(unwrapMethodName).append("());}");
             }else{

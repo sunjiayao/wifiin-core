@@ -7,12 +7,16 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.apache.curator.shaded.com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.wifiin.common.GlobalObject;
 
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
@@ -32,7 +36,7 @@ public class RedisSentinelPool extends Pool<ShardedJedis> {
     private String password;
     private int timeout;
     private GenericObjectPoolConfig poolConfig;
-    private List<JedisShardInfo> list;
+    private volatile List<JedisShardInfo> list;
     
     public RedisSentinelPool(Set<String> sentinel, String password, int timeout, GenericObjectPoolConfig poolConfig) {
         list = initSentinel(sentinel, password);
@@ -129,7 +133,7 @@ public class RedisSentinelPool extends Pool<ShardedJedis> {
                 await(1000);
             }
         }
-        return list;
+        return new Vector<>(list);
     }
     
     private static HostAndPort toHostAndPort(List<String> getMasterAddrByNameResult){
@@ -140,7 +144,6 @@ public class RedisSentinelPool extends Pool<ShardedJedis> {
     
     private void switchShardedPool(){
         log.info("RedisSentinelPool.switchShardedPool:start");
-        ShardedJedisPool old = this.shardedJedisPool;
         Collections.sort(list,(Comparator<JedisShardInfo>)(JedisShardInfo i1, JedisShardInfo i2)->{
             int r = i1.getHost().compareTo(i2.getHost());
             if(r==0){
@@ -148,8 +151,32 @@ public class RedisSentinelPool extends Pool<ShardedJedis> {
             }
             return r;
         });
-        this.shardedJedisPool = new ShardedJedisPool(poolConfig, list);
-        old.close();
+        List<JedisShardInfo> shards=Lists.newArrayList();
+        list.forEach((i)->{
+            JedisShardInfo prev=null;
+            if(shards.size()>0){
+                prev=shards.get(shards.size()-1);
+            }
+            if(prev==null || !prev.getHost().equals(i.getHost()) || prev.getPort()!=i.getPort()){
+                shards.add(i);
+            }
+        });
+        list=new Vector<>(shards);
+        ShardedJedisPool old = this.shardedJedisPool;
+        ShardedJedisPool newPool=null;
+        try{
+            newPool=new ShardedJedisPool(poolConfig, shards);
+            this.shardedJedisPool = newPool;
+            log.info("RedisSentinelPool.switchShardedPool:ShardedInfo:"+GlobalObject.getJsonMapper().writeValueAsString(shards));
+        }catch(Exception e){
+            this.shardedJedisPool=old;
+            if(newPool!=null){
+                newPool.close();
+            }
+        }
+        if(this.shardedJedisPool!=old && old!=null){
+            old.close();
+        }
         log.info("RedisSentinelPool.switchShardedPool:end");
     }
     
