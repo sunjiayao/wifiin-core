@@ -87,6 +87,9 @@ public class SendMailUtil implements BeanNameAware,Serializable{
         this.formatterType=formatterType;
     }
     public String getPrefix(){
+        if(Help.isEmpty(prefix)){
+            prefix="${";
+        }
         return prefix;
     }
 
@@ -95,6 +98,9 @@ public class SendMailUtil implements BeanNameAware,Serializable{
     }
 
     public String getSuffix(){
+        if(Help.isEmpty(suffix)){
+            suffix="}";
+        }
         return suffix;
     }
 
@@ -201,7 +207,7 @@ public class SendMailUtil implements BeanNameAware,Serializable{
 		}
 	}
 	/**
-	 * 邮件正文，用content的KEY查找正文模板的#....#，并用content的值替换
+	 * 邮件正文，用content的KEY查找正文模板的#....#，并用content的值替换，#是占位符，可以任意指定
 	 * @param content
 	 * @return
 	 */
@@ -212,7 +218,7 @@ public class SendMailUtil implements BeanNameAware,Serializable{
 		if(contentFormatter==null){
 		    synchronized(this){
 		        if(contentFormatter==null){
-		            contentFormatter=this.formatterType.formatter(this.contentTemplate,prefix,suffix);
+		            contentFormatter=this.formatterType.formatter(this.contentTemplate,getPrefix(),getSuffix());
 		        }
 		    }
 		}

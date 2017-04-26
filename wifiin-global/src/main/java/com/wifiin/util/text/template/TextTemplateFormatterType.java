@@ -14,7 +14,7 @@ public enum TextTemplateFormatterType{
         }
         @Override
         public TextTemplateFormatter formatter(String template){
-            throw new IllegalAccessError(PLAIN_TEXT+" does not support this method");
+            return formatter(template,"${","}");
         }
     },
     FREE_MARKER{

@@ -11,7 +11,7 @@ public class MultiLangResponse implements Serializable{
     /**
      * 
      */
-    private static final long serialVersionUID=-4203885880175580805L;
+    private static final long serialVersionUID=-7770786641745854262L;
     private int status;
     private String value;
     public MultiLangResponse(int status,String value){
@@ -26,8 +26,11 @@ public class MultiLangResponse implements Serializable{
     }
     @SuppressWarnings("unchecked")
     public Map<String,String> getFieldValues(){
+        return getFieldValues(Map.class);
+    }
+    public <T> T getFieldValues(Class<T> modleClass){
         try{
-            return GlobalObject.getJsonMapper().readValue(value,Map.class);
+            return GlobalObject.getJsonMapper().readValue(value,modleClass);
         }catch(IOException e){
             throw new LanguageQueryException(e);
         }

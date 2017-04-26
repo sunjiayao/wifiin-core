@@ -534,6 +534,12 @@ public class HttpClient {
         this.url=url;
     }
     
+    public MultipartEntityBuilder multipartEntityBuilder(){
+        return new MultipartEntityBuilder(this);
+    }
+    public void setEntity(HttpEntity entity){
+        requestEntity=entity;
+    }
     public void inputStreamEntity(InputStream content){
         requestEntity=new InputStreamEntity(content);
     }

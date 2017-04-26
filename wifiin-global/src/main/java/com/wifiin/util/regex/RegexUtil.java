@@ -1,12 +1,11 @@
 package com.wifiin.util.regex;
 
 import java.io.UnsupportedEncodingException;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.wifiin.exception.RegexException;
+import com.wifiin.cache.HeapCache;
+import com.wifiin.cache.HeapCacheConfig;
 
 public class RegexUtil {
 	/**类c语法的注释正则表达式*/
@@ -17,8 +16,14 @@ public class RegexUtil {
 	private static Pattern blankCharRegex;
 	private static Pattern IP4;
 	private static Pattern MAC_REGEX;
-	private static Cache<String,Pattern> patternCache=CacheBuilder.newBuilder().build();
-	
+	private static Pattern EMAIL_REGEX;
+	private static final HeapCache<String,Pattern> patternCache;
+	static{
+	    HeapCacheConfig config=new HeapCacheConfig();
+	    config.setExpirePeriod(Long.MAX_VALUE);
+	    config.setExpireTimeUnit(TimeUnit.DAYS);
+	    patternCache=HeapCache.getInstance("RegexCache",config);
+	}
 	private static Pattern getBase64(){
 		if(BASE64==null){
 			synchronized(RegexUtil.class){
@@ -132,18 +137,26 @@ public class RegexUtil {
 		}
 		return MAC_REGEX;
 	}
-	
+	private static Pattern getEmailRegex(){
+	    if(EMAIL_REGEX==null){
+	        synchronized(RegexUtil.class){
+	            if(EMAIL_REGEX==null){
+	                EMAIL_REGEX=Pattern.compile("^[\\w\\.-]+@[\\w-\\.]+(\\.([a-zA-Z])+){1,3}$");
+	            }
+	        }
+	    }
+	    return EMAIL_REGEX;
+	}
+	public static boolean isEmail(String email){
+	    return getEmailRegex().matcher(email).matches();
+	}
 	public static boolean isMac(String mac){
 		return getMacRegex().matcher(mac.toLowerCase()).matches();
 	}
 	public static Pattern getRegex(String regex){
-		try{
-            return patternCache.get(regex,()->{
-                return Pattern.compile(regex);
-            });
-        }catch(ExecutionException e){
-            throw new RegexException(e);
-        }
+        return patternCache.get(regex,()->{
+            return Pattern.compile(regex);
+        });
 	}
 	public static Pattern getRegex(String regex, int flags){
 		return getRegex('/'+regex+'/'+flags);
