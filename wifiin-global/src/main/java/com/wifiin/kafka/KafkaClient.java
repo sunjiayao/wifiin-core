@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.wifiin.common.CommonConstant;
 import com.wifiin.common.GlobalObject;
 import com.wifiin.config.ConfigManager;
 import com.wifiin.kafka.KafkaTopicClassMap.TopicClass;
@@ -97,7 +98,7 @@ public class KafkaClient{
     /**
      * 空字节数组
      */
-    static final byte[] EMPTY_BYTES=new byte[0];
+    static final byte[] EMPTY_BYTES=CommonConstant.EMPTY_BYTE_ARRAY;
     /**
      * 当前进程内的kafka生产者
      */

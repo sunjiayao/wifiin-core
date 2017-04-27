@@ -27,6 +27,7 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.wifiin.common.CommonConstant;
 import com.wifiin.util.Help;
 
 /**
@@ -37,7 +38,7 @@ import com.wifiin.util.Help;
 public class ThreadLocalKryo {
     private Logger log=LoggerFactory.getLogger(ThreadLocalKryo.class);
     private static final ThreadLocalKryo instance=new ThreadLocalKryo();
-    private static final byte[] EMPTY_BUFFER=new byte[0];
+    private static final byte[] EMPTY_BUFFER=CommonConstant.EMPTY_BYTE_ARRAY;
     public static ThreadLocalKryo kryo(){
         return instance;
     }

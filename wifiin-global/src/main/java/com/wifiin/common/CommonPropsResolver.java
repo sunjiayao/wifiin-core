@@ -4,7 +4,7 @@ import org.springframework.context.EmbeddedValueResolverAware;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringValueResolver;
 
-import com.wifiin.springboot.ApplicationContextHolder;
+import com.wifiin.spring.ApplicationContextHolder;
 import com.wifiin.util.Help;
 /**
  * 通用properties属性获取类。
@@ -36,7 +36,7 @@ public class CommonPropsResolver implements EmbeddedValueResolverAware{
         if(instance==null){
             synchronized(CommonPropsResolver.class){
                 if(instance==null){
-                    instance=ApplicationContextHolder.getApplicationContext().getBean(CommonPropsResolver.class);
+                    instance=ApplicationContextHolder.getInstance().getBean(CommonPropsResolver.class);
                 }
             }
         }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.wifiin.cache.HeapCache;
 import com.wifiin.cache.aop.exception.CacheAOPException;
+import com.wifiin.common.CommonConstant;
 import com.wifiin.constant.WifiinConstant;
 import com.wifiin.redis.RedisConnection;
 import com.wifiin.util.Help;
@@ -22,7 +23,7 @@ import com.wifiin.util.text.template.TextTemplateFormatterFactory;
 @Component
 @Aspect
 public class CacheAspect{
-    private static final String[] EMPTY_STRING_ARRAY={""};
+    private static final String[] EMPTY_STRING_ARRAY=CommonConstant.EMPTY_STRING_ARRAY;
     @Autowired
     private RedisConnection redis;
     private HeapCache<String,Object> heapCache=HeapCache.<String,Object>getDefaultInstance("cacheAspect");

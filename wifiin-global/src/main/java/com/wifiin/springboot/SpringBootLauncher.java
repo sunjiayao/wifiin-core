@@ -30,7 +30,6 @@ public class SpringBootLauncher {
         confs[0]=SpringBootLauncher.class;
         ConfigurableApplicationContext context=SpringApplication.run(confs,args);
         log.info("{} started in: {} ms",appName,(System.currentTimeMillis()-start));
-        ApplicationContextHolder.setApplicationContext(context);
         return context;
     }
     

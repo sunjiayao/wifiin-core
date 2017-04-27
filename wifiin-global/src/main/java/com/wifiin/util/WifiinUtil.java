@@ -17,8 +17,12 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -689,6 +693,14 @@ public class WifiinUtil {
         param.put("timestamp", Long.toString(System.currentTimeMillis()));//当前时间毫秒数
         param.put("nonce", RandomStringUtils.random(8,"0123456789"));//8位十进制随机字符串
         return makeSignInParams(param,signKey);
+    }
+    public static String language(){
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String lang=(String)request.getAttribute("lang");
+        if(Help.isEmpty(lang)){
+            lang=CommonConstant.DEFAULT_LANGUAGE;
+        }
+        return lang;
     }
     
     public static void main(String[] args) throws JsonParseException, JsonMappingException, IOException {

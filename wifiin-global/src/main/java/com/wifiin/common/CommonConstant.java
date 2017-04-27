@@ -42,6 +42,9 @@ public final class CommonConstant {
 	 * 常量key相同的以最后一次出现的为准
 	 */
 	private static String CONSTANT_PROPERTIES="current.constant.properties";
+	public static final Object[] EMPTY_OBJECT_ARRAY={};
+    public static final String[] EMPTY_STRING_ARRAY={};
+    public static final byte[] EMPTY_BYTE_ARRAY={};
 	private static Map<String,String> CONSTANTS=Maps.newConcurrentMap();
 	private static String getConstantProperties(){
 	    return CONSTANT_PROPERTIES;
@@ -66,6 +69,10 @@ public final class CommonConstant {
 	 */
 	public static final long LOGIN_INCORRECT_PASSWORD=-2;
 	/**
+	 * 默认语言
+	 */
+	public static final String DEFAULT_LANGUAGE="zh-cn";
+	/**
 	 * 默认字符集的名称
 	 */
 	public static final String DEFAULT_CHARSET_NAME="UTF-8";
@@ -80,18 +87,6 @@ public final class CommonConstant {
 	public static final Charset DEFAULT_CHARSET_INSTANCE=Charset.forName(DEFAULT_CHARSET_NAME);
 	public static final String PASSWORD = "password";
 	
-	private static String[] EMPTY_STRING_ARRAY;
-	public static String[] getEmptyStringArray(){
-	    if(EMPTY_STRING_ARRAY==null){
-	        synchronized(CommonConstant.class){
-	            if(EMPTY_STRING_ARRAY==null){
-	                EMPTY_STRING_ARRAY=new String[0];
-	            }
-	        }
-	    }
-	    return EMPTY_STRING_ARRAY;
-	}
-
 	/**
 	 * 返回值作为向浏览器推送的javascript函数名
 	 * properties键名：properties.dev.project.iframefn
