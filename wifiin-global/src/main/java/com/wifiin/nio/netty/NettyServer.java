@@ -17,18 +17,13 @@ import com.wifiin.util.ShutdownHookUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.timeout.IdleState;
-import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 
@@ -58,7 +53,7 @@ public class NettyServer<I,O extends OutputObject,T extends AbstractCommonCodec<
             bootstrap.channel(MachineUtil.isLinux()?EpollServerSocketChannel.class:NioServerSocketChannel.class);
             bootstrap.option(ChannelOption.SO_BACKLOG, 1024)
                      .option(ChannelOption.SO_REUSEADDR, true)
-                     .option(ChannelOption.SO_KEEPALIVE, false)
+                     .option(ChannelOption.SO_KEEPALIVE, true)
                      .childOption(ChannelOption.TCP_NODELAY, true);
             for(Map.Entry<ChannelOption,Object> option:params.channelOptions().entrySet()){
                 bootstrap.option(option.getKey(),option.getValue());

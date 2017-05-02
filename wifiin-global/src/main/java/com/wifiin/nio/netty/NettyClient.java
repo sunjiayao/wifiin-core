@@ -51,7 +51,7 @@ public class NettyClient<I,O extends OutputObject,T extends AbstractCommonCodec<
     public NettyClient<I,O,T> start() {
         bootstrap.group(this.eventLoopGroupWorker).channel(MachineUtil.isLinux()?EpollSocketChannel.class:NioSocketChannel.class)//
             .option(ChannelOption.TCP_NODELAY, true)
-            .option(ChannelOption.SO_KEEPALIVE, false);
+            .option(ChannelOption.SO_KEEPALIVE, true);
         for(Map.Entry<ChannelOption,Object> option:params.channelOptions().entrySet()){
             bootstrap.option(option.getKey(),option.getValue());
         }

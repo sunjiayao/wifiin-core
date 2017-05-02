@@ -52,6 +52,11 @@ final class ReplayingDecoderByteBuf extends ByteBuf {
         this.setCumulation(Unpooled.EMPTY_BUFFER);
         terminated = true;
     }
+    void terminate(int decrement){
+        ReferenceCountUtil.release(this.buffer,decrement);
+        this.setCumulation(Unpooled.EMPTY_BUFFER);
+        terminated = true;
+    }
 
     @Override
     public int capacity() {
@@ -146,7 +151,9 @@ final class ReplayingDecoderByteBuf extends ByteBuf {
 
     @Override
     public ByteBuf discardReadBytes() {
-        throw reject();
+        ByteBuf buf=buffer.discardReadBytes();
+        buffer.release();
+        return buf;
     }
 
     @Override
@@ -1087,7 +1094,9 @@ final class ReplayingDecoderByteBuf extends ByteBuf {
 
     @Override
     public ByteBuf discardSomeReadBytes() {
-        throw reject();
+        ByteBuf buf=buffer.discardSomeReadBytes();
+        buffer.release();
+        return buf;
     }
 
     @Override
@@ -1119,12 +1128,14 @@ final class ReplayingDecoderByteBuf extends ByteBuf {
 
     @Override
     public boolean release() {
-        throw reject();
+        this.terminate();
+        return terminated;
     }
 
     @Override
     public boolean release(int decrement) {
-        throw reject();
+        this.terminate(decrement);
+        return terminated;
     }
 
     @Override

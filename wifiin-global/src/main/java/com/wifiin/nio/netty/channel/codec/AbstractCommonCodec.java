@@ -51,8 +51,9 @@ public abstract class AbstractCommonCodec<I,O extends OutputObject> extends Simp
         }catch(Signal s){
             s.expect(ReplayingDecoderByteBuf.REPLAY);
             buf.resetReaderIndex();
+        }finally{
+            buf.terminate();
         }
-        buf.terminate();
         I r=i;
         i=null;
         return r;

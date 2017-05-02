@@ -263,8 +263,9 @@ public class Localhost {
 	public static String getLocalHostName0(){
 	    return getLocalhost().getHostName();
 	}
+	
 	public static void main(String[] args) throws IOException {
-	    System.out.println(getLocalhost());
+	    System.out.println(getLocalIpInStringNoDot());
 	    System.out.println(getNetworkInterface().getHardwareAddress());
 	    System.out.println(getLocalMacInString());
 	    java.util.Enumeration<NetworkInterface> nie=NetworkInterface.getNetworkInterfaces();

@@ -16,8 +16,15 @@ public class ShutdownHookUtil{
                 HOOKS.parallelStream().forEach((r)->{
                     try{
                         r.run();
-                    }catch(Exception e){
-                        log.warn("ShutdownHook:",e);
+                        if(r instanceof NamedRunnabled){
+                            log.info("Shutdown task {} finished",((NamedRunnabled)r).name());
+                        }
+                    }catch(Throwable e){
+                        if(r instanceof NamedRunnabled){
+                            log.warn("ShutdownHook:"+((NamedRunnabled)r).name(),e);
+                        }else{
+                            log.warn("ShutdownHook:",e);
+                        }
                     }
                 });
             }
@@ -25,5 +32,11 @@ public class ShutdownHookUtil{
     }
     public static void addHook(Runnable hook){
         HOOKS.add(hook);
+    }
+    public static void addHook(NamedRunnabled hook){
+        HOOKS.add((Runnable)hook);
+    }
+    public static interface NamedRunnabled extends Runnable{
+        public String name();
     }
 }
