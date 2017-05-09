@@ -15,6 +15,12 @@ public class TestBeanUtil{
     @Test
     public void testBeanUtil(){
         com.wifiin.test.bean.Test t=new com.wifiin.test.bean.Test();
+        BeanUtil.set(t,"i",null,true);
+        try{
+            BeanUtil.set(t,"i",null,false);
+        }catch(NullPointerException e){
+            
+        }
         Assert.assertEquals(1,((Integer)BeanUtil.get(t,"i",false)).intValue());
         Assert.assertEquals("ss",BeanUtil.get(t,"s",false));
         BeanUtil.set(t,"i",10,false);
@@ -44,6 +50,23 @@ public class TestBeanUtil{
         Assert.assertEquals(value,tb.getWrappedI().intValue());
         BeanUtil.set(tb,"wrappedI",null,false);
         Assert.assertEquals(null,tb.getWrappedI());
+        long lv=1L;
+        BeanUtil.set(tb,"wrappedI",lv,false);
+        Assert.assertEquals(lv,tb.getWrappedI().intValue());
+        BeanUtil.set(tb,"i",lv,false);
+        Assert.assertEquals(lv,tb.getI());
+        
+        lv=Long.MAX_VALUE;
+        try{
+            BeanUtil.set(tb,"wrappedI",lv,false);
+        }catch(NumberFormatException e){
+            Assert.assertEquals("For input string: \"9223372036854775807\"",e.getMessage());
+        }
+        try{
+            BeanUtil.set(tb,"i",lv,false);
+        }catch(NumberFormatException e){
+            Assert.assertEquals("For input string: \"9223372036854775807\"",e.getMessage());
+        }
     }
     public static class TestBean{
         private int i;
@@ -80,5 +103,14 @@ public class TestBeanUtil{
         m.put("l","1234241");
         m.put("b","true");
         System.out.println(GlobalObject.getJsonMapper().writeValueAsString(BeanUtil.populate(m,com.wifiin.test.bean.Test.class,false,false)));
+    }
+    @Test
+    public void test(){
+        //{"orderId":"1K14879603WKLAGQ24","bytes":100,"incrementalBytes":10}
+        Map m=Maps.newHashMap();
+        m.put("orderId","1K14879603WKLAGQ24");
+        m.put("bytes",100);
+        m.put("incrementalBytes",10);
+        BeanUtil.populateFromMap(m,IneFlowOrder.class,false,false);
     }
 }

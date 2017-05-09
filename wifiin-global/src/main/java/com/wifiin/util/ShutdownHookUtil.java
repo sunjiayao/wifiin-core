@@ -17,13 +17,13 @@ public class ShutdownHookUtil{
                     try{
                         r.run();
                         if(r instanceof NamedRunnabled){
-                            log.info("Shutdown task {} finished",((NamedRunnabled)r).name());
+                            log.info("ShutdownHookTask {} finished",((NamedRunnabled)r).name());
                         }
                     }catch(Throwable e){
                         if(r instanceof NamedRunnabled){
-                            log.warn("ShutdownHook:"+((NamedRunnabled)r).name(),e);
+                            log.warn("ShutdownHookTask:"+((NamedRunnabled)r).name(),e);
                         }else{
-                            log.warn("ShutdownHook:",e);
+                            log.warn("ShutdownHookTask:",e);
                         }
                     }
                 });

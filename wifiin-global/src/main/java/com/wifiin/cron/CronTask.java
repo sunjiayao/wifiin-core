@@ -39,6 +39,13 @@ public interface CronTask extends Runnable{
      */
     public default void clean(){}
     /**
+     * 不要覆盖本方法
+     */
+    public default void clean0(){
+        clean();
+        cronExpr.remove();
+    }
+    /**
      * 是否允许并发执行，默认是true
      * @return
      */
@@ -54,7 +61,7 @@ public interface CronTask extends Runnable{
      * @param executedTime
      */
     public default void executedAt(Date executedTime){
-        log.info("CronTask.executed:{};{}",name(),cron0());
+        log.info("CronTask.executed:{};{};{}",Thread.currentThread().getName(),name(),cron0());
     }
     /**
      * 类CronTaskTrigger会用这个方法得到cron表达式
@@ -81,7 +88,7 @@ public interface CronTask extends Runnable{
                     execute();
                     executedAt(new Date());
                 }finally{
-                    clean();
+                    clean0();
                 }
             }
         }catch(Exception e){

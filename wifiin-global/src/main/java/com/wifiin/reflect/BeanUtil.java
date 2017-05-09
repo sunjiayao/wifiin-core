@@ -75,18 +75,24 @@ public class BeanUtil{
     public static <O,V> void set(O src,String property,V v,boolean silence){
         Setter<O,V> setter=(Setter<O,V>)setters(src.getClass()).get(property);
         if(setter!=null){
-            setter.set(src,v);
+            try{
+                setter.set(src,v);
+            }catch(RuntimeException e){
+                if(!silence){
+                    throw e;
+                }
+            }
         }else{
             if(!silence){
                 throw new SetterGenerationException("there is no specified property setter method in src, or the property is not public");
             }
         }
     }
-    public static Map<String,Object> populateMap(Object src,boolean populateEmpty,String... fields){
-        return populateMap(src,populateEmpty,(v)->{return v;},fields);
+    public static Map<String,Object> populateToMap(Object src,boolean populateEmpty,String... fields){
+        return populateToMap(src,populateEmpty,(v)->{return v;},fields);
     }
     @SuppressWarnings({"unchecked","rawtypes"})
-    public static <V> Map<String,V> populateMap(Object src,boolean populateEmpty,Function<Object,V> valueConverter, String... fields){
+    public static <V> Map<String,V> populateToMap(Object src,boolean populateEmpty,Function<Object,V> valueConverter, String... fields){
         Map<String,Getter<?,?>> getters=BeanUtil.getters(src.getClass());
         Map<String,V> m=Maps.newHashMap();
         for(int i=0,l=fields.length;i<l;i++){
@@ -100,11 +106,11 @@ public class BeanUtil{
         }
         return m;
     }
-    public static Map<String,Object> populateMap(Object src,boolean populateEmpty){
-        return populateMap(src,populateEmpty,(v)->{return v;});
+    public static Map<String,Object> populateToMap(Object src,boolean populateEmpty){
+        return populateToMap(src,populateEmpty,(v)->{return v;});
     }
     @SuppressWarnings({"unchecked","rawtypes"})
-    public static <V> Map<String,V> populateMap(Object src,boolean populateEmpty,Function<Object,V> valueConverter){
+    public static <V> Map<String,V> populateToMap(Object src,boolean populateEmpty,Function<Object,V> valueConverter){
         Map<String,V> m=Maps.newHashMap();
         for(Map.Entry<String,Getter<?,?>> entry:BeanUtil.getters(src.getClass()).entrySet()){
             String name=entry.getKey();
@@ -118,36 +124,16 @@ public class BeanUtil{
         }
         return m;
     }
-    public static <O> O populate(Object src, Class<O> cls,boolean populateEmpty, boolean deep) {
+    public static <O> O populateFromMap(Map<String,Object> src, Class<O> cls,boolean populateEmpty,boolean deep){
         try{
-            return populate(src,cls.newInstance(),populateEmpty,deep);
-        }catch(InstantiationException | IllegalAccessException e){
-            throw new BeanPropertyPopulationException(e);
-        }
-    }
-    @SuppressWarnings({"unchecked","rawtypes"})
-    public static <O> O populate(Object src,O dest,boolean populateEmpty,boolean deep){
-        Class clazz=dest.getClass();
-        Map<String,Setter<?,?>> setters=setters(clazz);
-        for(Entry<String,Getter<?,?>> entry:getters(src.getClass()).entrySet()){
-            Setter setter=setters.get(entry.getKey());
-            if(setter!=null){
-                Object value=entry.getValue();
-                populate(value,dest,setter,populateEmpty,deep);
-            }
-        }
-        return dest;
-    }
-    public static <O> O populate(Map<String,Object> src, Class<O> cls,boolean populateEmpty,boolean deep){
-        try{
-            return populate(src,cls.newInstance(),populateEmpty,deep);
+            return populateFromMap(src,cls.newInstance(),populateEmpty,deep);
         }catch(InstantiationException | IllegalAccessException e){
             throw new BeanPropertyPopulationException(e);
         }
     }
     
     @SuppressWarnings({"unchecked","rawtypes"})
-    public static <O> O populate(Map<String,Object> src,O dest,boolean populateEmpty,boolean deep){
+    public static <O> O populateFromMap(Map<String,Object> src,O dest,boolean populateEmpty,boolean deep){
         Class clazz=dest.getClass();
         Map<String,Setter<?,?>> setters=setters(clazz);
         for(Map.Entry<String,Object> entry:src.entrySet()){
@@ -159,11 +145,11 @@ public class BeanUtil{
         }
         return dest;
     }
-    public static <O> O populate(Map<String,Object> src, Class<O> cls, boolean populateEmpty, boolean deep, String... properties) throws InstantiationException, IllegalAccessException{
-        return populate(src,cls.newInstance(),populateEmpty,deep,properties);
+    public static <O> O populateFromMap(Map<String,Object> src, Class<O> cls, boolean populateEmpty, boolean deep, String... properties) throws InstantiationException, IllegalAccessException{
+        return populateFromMap(src,cls.newInstance(),populateEmpty,deep,properties);
     }
     @SuppressWarnings({"unchecked","rawtypes"})
-    public static <O> O populate(Map<String,Object> src,O dest,boolean populateEmpty,boolean deep,String... properties){
+    public static <O> O populateFromMap(Map<String,Object> src,O dest,boolean populateEmpty,boolean deep,String... properties){
         Class clazz=dest.getClass();
         Map<String,Setter<?,?>> setters=setters(clazz);
         for(int i=0,l=properties.length;i<l;i++){
@@ -178,6 +164,30 @@ public class BeanUtil{
         }
         return dest;
     }
+    public static <O> O populate(Object src, Class<O> cls,boolean populateEmpty, boolean deep) {
+        try{
+            return populate(src,cls.newInstance(),populateEmpty,deep);
+        }catch(InstantiationException | IllegalAccessException e){
+            throw new BeanPropertyPopulationException(e);
+        }
+    }
+    @SuppressWarnings({"unchecked","rawtypes"})
+    public static <O> O populate(Object src,O dest,boolean populateEmpty,boolean deep){
+        if(src instanceof Map){
+            return (O)populateFromMap((Map)src,dest,populateEmpty,deep);
+        }
+        Class clazz=dest.getClass();
+        Map<String,Setter<?,?>> setters=setters(clazz);
+        for(Entry<String,Getter<?,?>> entry:getters(src.getClass()).entrySet()){
+            Setter setter=setters.get(entry.getKey());
+            if(setter!=null){
+                Object value=entry.getValue();
+                populate(value,dest,setter,populateEmpty,deep);
+            }
+        }
+        return dest;
+    }
+    
     @SuppressWarnings({"unchecked","rawtypes"})
     private static void populate(Object value,Object dest,Setter setter,boolean populateEmpty,boolean deep){
         if(populateEmpty || Help.isNotEmpty(value)){

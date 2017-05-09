@@ -1442,7 +1442,7 @@ public class WatchableConfigManagedShardedRedisPool implements RedisConnection{
         if(value instanceof Map){
             return hmset(key,(Map)value);
         }else{
-            return hmset(key,BeanUtil.populateMap(value,false));
+            return hmset(key,BeanUtil.populateToMap(value,false));
         }
     }
 
@@ -1597,7 +1597,7 @@ public class WatchableConfigManagedShardedRedisPool implements RedisConnection{
         if(Help.isEmpty(fields)){
             return "0";
         }
-        return hmset(key,BeanUtil.populateMap(hash,false,fields));
+        return hmset(key,BeanUtil.populateToMap(hash,false,fields));
     }
 
     @Override

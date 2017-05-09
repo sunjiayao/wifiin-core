@@ -319,7 +319,7 @@ public class JedisConnection implements RedisConnection{
 			}
 			return String.valueOf(set(key,(Map)mv));
 		}else{
-			return String.valueOf(set(key,BeanUtil.populateMap(value,false,this::value2String)));
+			return String.valueOf(set(key,BeanUtil.populateToMap(value,false,this::value2String)));
 		}
 	}
 	@SuppressWarnings({"unchecked","rawtypes"})
@@ -340,7 +340,7 @@ public class JedisConnection implements RedisConnection{
 			}
 			return Long.toString(set(key,mv));
 		}
-		return Long.toString(set(key,(Map)BeanUtil.populateMap(value,false,this::value2String,fields)));
+		return Long.toString(set(key,(Map)BeanUtil.populateToMap(value,false,this::value2String,fields)));
 	}
 
 	@Override
@@ -481,7 +481,7 @@ public class JedisConnection implements RedisConnection{
         if(Help.isEmpty(fields)){
             return "0";
         }
-        Map<String,String> m=BeanUtil.populateMap(hash,false,this::value2String,fields);
+        Map<String,String> m=BeanUtil.populateToMap(hash,false,this::value2String,fields);
         return hmset0(key,m);
     }
 	
@@ -502,7 +502,7 @@ public class JedisConnection implements RedisConnection{
 		if(value instanceof Map){
 			return hmset(key,(Map)value);
 		}else{
-		    Map<String,String> m=BeanUtil.populateMap(value,false,this::value2String);
+		    Map<String,String> m=BeanUtil.populateToMap(value,false,this::value2String);
 			return hmset0(key,m);
 		}
 	}

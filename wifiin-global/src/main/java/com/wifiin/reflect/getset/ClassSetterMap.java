@@ -23,13 +23,6 @@ public class ClassSetterMap{
     @SuppressWarnings("unchecked")
     private static <O,V> Setter<O,V> generateSetter(Class<O> clazz,
             final Field field) throws NotFoundException,CannotCompileException,InstantiationException,IllegalAccessException{
-//        return (Setter<O,V>)generateSetter(clazz,new Supplier<Class<V>>(){
-//            public Class<V> get(){
-//                return (Class<V>)field.getType();
-//            }},new Supplier<String>(){
-//                public String get(){
-//                    return field.getName();
-//                }},false);
         return (Setter<O,V>)generateSetter(clazz,()->{
             return (Class<V>)(field.getType());
         },()->{
@@ -53,8 +46,8 @@ public class ClassSetterMap{
     }
     
     @SuppressWarnings("unchecked")
-    private static <O,V> Setter<O,V> generateSetter(Class<O> clazz,
-            Method setter) throws InstantiationException,IllegalAccessException,NotFoundException,CannotCompileException{
+    private static <O,V> Setter<O,V> generateSetter(Class<O> clazz, Method setter) 
+            throws InstantiationException,IllegalAccessException,NotFoundException,CannotCompileException{
         return (Setter<O,V>)generateSetter(clazz,()->{
             return (Class<V>)(setter.getParameterTypes()[0]);
         },()->{

@@ -56,6 +56,10 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
      */
     private final AtomicBoolean asyncConsumerRecords=new AtomicBoolean(false);
     /**
+     * 是否在executor处理完一批消息前执行commit,默认是false
+     */
+    private final AtomicBoolean commitBeforeExecutorReturn=new AtomicBoolean(false);
+    /**
      * 是否正在执行
      */
     private final AtomicBoolean executing=new AtomicBoolean(false);
@@ -158,6 +162,14 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
                 log.warn("KafkaConsumer.commit:"+GlobalObject.getJsonMapper().writeValueAsString(toCommit));
             }catch(JsonProcessingException e1){}
         }
+    }
+    /**
+     * 是否在executor返回前提交
+     * @param commit
+     */
+    public KafkaConsumer commitBeforeExecutorReturn(boolean commit){
+        this.commitBeforeExecutorReturn.set(commit);
+        return this;
     }
     /**
      * 本消费者订阅的消息
@@ -280,6 +292,13 @@ public class KafkaConsumer extends org.apache.kafka.clients.consumer.KafkaConsum
             this.executors.add((crs,cr)->{
                 try{
                     e.accept(crs,cr);
+                    if(this.commitBeforeExecutorReturn.get()){
+                        TopicPartition tp=new TopicPartition(cr.topic(),cr.partition());
+                        OffsetAndMetadata om=new OffsetAndMetadata(cr.offset());
+                        Map m=Maps.newHashMap();
+                        m.put(tp,om);
+                        super.commitSync(m);
+                    }
                 }catch(Exception ex){
                     if(cr.key().getRepeatable() && repeatable.apply(cr)){
                         cr.key().incrRepeat();

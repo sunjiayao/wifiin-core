@@ -21,6 +21,7 @@ public class DynamicCronTaskScheduler{
     private ThreadPoolTaskScheduler scheduler=new ThreadPoolTaskScheduler();
     private Map<String,ScheduledFuture<?>> scheudledFutures=Maps.newConcurrentMap();
     public DynamicCronTaskScheduler(){
+        scheduler.initialize();
         shutdownHook();
     }
     /**
@@ -40,6 +41,7 @@ public class DynamicCronTaskScheduler{
         });
         scheduler.setWaitForTasksToCompleteOnShutdown(waitForJobsToCompleteOnShutdown);
         scheduler.setDaemon(daemon);
+        scheduler.initialize();
         shutdownHook();
     }
     
