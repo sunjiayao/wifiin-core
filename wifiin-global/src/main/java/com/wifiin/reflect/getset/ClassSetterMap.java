@@ -50,9 +50,7 @@ public class ClassSetterMap{
             throws InstantiationException,IllegalAccessException,NotFoundException,CannotCompileException{
         return (Setter<O,V>)generateSetter(clazz,()->{
             return (Class<V>)(setter.getParameterTypes()[0]);
-        },()->{
-            return setter.getName();
-        },true);
+        },setter::getName,true);
     }
     
     @SuppressWarnings("unchecked")

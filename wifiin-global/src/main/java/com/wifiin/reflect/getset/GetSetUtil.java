@@ -36,6 +36,7 @@ public class GetSetUtil{
             .put(boolean.class,Boolean.class)
             .put(float.class,Float.class)
             .put(double.class,Double.class)
+            .put(String.class,String.class)
             .build();
     private static final Map<Class,String> WRAPPED_VALUE_METHOD_MAP=ImmutableMap.<Class,String>builder()
             .put(Integer.class,".intValue()")
@@ -46,6 +47,7 @@ public class GetSetUtil{
             .put(Boolean.class,".booleanValue()")
             .put(Float.class,".floatValue()")
             .put(Double.class,".doubleValue()")
+            .put(String.class,".valueOf()")
             .build();
     static{
         ClassClassPath ccpath = new ClassClassPath(Getter.class);

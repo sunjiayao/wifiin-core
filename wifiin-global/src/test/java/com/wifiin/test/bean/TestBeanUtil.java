@@ -37,6 +37,8 @@ public class TestBeanUtil{
         value=2418;
         BeanUtil.set(tb,"i",value,false);
         Assert.assertEquals(value,tb.getI());
+        BeanUtil.set(tb,"s",value,false);
+        Assert.assertEquals(Integer.toString(value),tb.getS());
         String s="helloworld";
         BeanUtil.set(tb,"s",s,false);
         Assert.assertEquals(s,tb.getS());
@@ -55,6 +57,12 @@ public class TestBeanUtil{
         Assert.assertEquals(lv,tb.getWrappedI().intValue());
         BeanUtil.set(tb,"i",lv,false);
         Assert.assertEquals(lv,tb.getI());
+        
+        String si="1234";
+        BeanUtil.set(tb,"wrappedI",si,false);
+        Assert.assertEquals(Integer.parseInt(si),tb.getWrappedI().intValue());
+        BeanUtil.set(tb,"i",si,false);
+        Assert.assertEquals(Integer.parseInt(si),tb.getI());
         
         lv=Long.MAX_VALUE;
         try{
