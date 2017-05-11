@@ -37,6 +37,7 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -98,9 +99,10 @@ public class HttpClient {
     private HttpRequestBase requestData;
     private HttpEntity requestEntity;
     private HttpEntity responseEntity;
-    private String proxyHost;
+    private String proxyHost="";
     private int proxyPort;
     private boolean useProxy;
+    private boolean pooled;
     private String contentType;
     private String userAgent;
     private StatusLine status;
@@ -179,7 +181,11 @@ public class HttpClient {
         this.httpVersion=version;
     }
     public HttpClient(String url){
+        this(url,true);
+    }
+    public HttpClient(String url,boolean pooled){
         this.url=url;
+        this.pooled=pooled;
     }
     
     public InputStream putForInputStream() throws IOException{
@@ -298,56 +304,42 @@ public class HttpClient {
     public <P> void access(HttpMethod method,OutputStream out) throws IOException{
         communicate(method,Void.class,out);
     }
-    
-    private CloseableHttpClient httpClient(){
+    private CloseableHttpClient createHttpClient(){
+        HttpClientBuilder httpClientBuilder=HttpClients.custom().setDefaultRequestConfig(
+                RequestConfig.custom().setConnectionRequestTimeout(connectionRequestTimeout).setConnectTimeout(connectTimeout).setSocketTimeout(socketTimeout).build())
+                .setRetryHandler((IOException exception,int executionCount,HttpContext context)->{
+                    if (executionCount > retryCount) {
+                         return false;
+                     }
+                     if (exception instanceof org.apache.http.NoHttpResponseException) {
+                         return true;
+                     }
+                     return false;
+                })
+                .setDefaultConnectionConfig(ConnectionConfig.custom().setBufferSize(bufferSize).setCharset(Charset.forName(getCharset())).build())
+                .setConnectionTimeToLive(connectionLiveMinutes,TimeUnit.MINUTES)
+                .setConnectionManager(CONNECTION_MANAGER)
+                .setMaxConnTotal(maxConnTotal).setMaxConnPerRoute(maxConnPerRoute);
         boolean proxy=Help.isNotEmpty(proxyHost) && proxyPort>0;
         if(useProxy || proxy){
+            HttpRoutePlanner routePlanner;
+            if(proxy){
+                HttpHost proxyHost = new HttpHost(this.proxyHost,this.proxyPort);
+                routePlanner = new DefaultProxyRoutePlanner(proxyHost);
+            }else{
+                routePlanner = new SystemDefaultRoutePlanner(ProxySelector.getDefault());
+            }
+            httpClientBuilder.setRoutePlanner(routePlanner);
+        }
+        return httpClientBuilder.build();
+    }
+    private CloseableHttpClient httpClient(){
+        if(pooled){
             return HTTP_MAP.computeIfAbsent(ThreadLocalStringBuilder.builder().append(proxyHost).append(":").append(proxyPort).toString(),(k)->{
-                HttpRoutePlanner routePlanner;
-                if(proxy){
-                    HttpHost proxyHost = new HttpHost(this.proxyHost,this.proxyPort);
-                    routePlanner = new DefaultProxyRoutePlanner(proxyHost);
-                }else{
-                    routePlanner = new SystemDefaultRoutePlanner(ProxySelector.getDefault());
-                }
-                return HttpClients.custom().setDefaultRequestConfig(
-                        RequestConfig.custom().setConnectionRequestTimeout(connectionRequestTimeout).setConnectTimeout(connectTimeout).setSocketTimeout(socketTimeout).build())
-                        .setConnectionTimeToLive(connectLiveTime,TimeUnit.MILLISECONDS)
-                        .setRetryHandler((IOException exception,int executionCount,HttpContext context)->{
-                            if (executionCount > retryCount) {
-                                 return false;
-                             }
-                             if (exception instanceof org.apache.http.NoHttpResponseException) {
-                                 return true;
-                             }
-                             return false;
-                        })
-                        .setDefaultConnectionConfig(ConnectionConfig.custom().setBufferSize(bufferSize).setCharset(Charset.forName(getCharset())).build())
-                        .setConnectionTimeToLive(connectionLiveMinutes,TimeUnit.MINUTES)
-                        .setConnectionManager(CONNECTION_MANAGER)
-                        .setMaxConnTotal(maxConnTotal).setMaxConnPerRoute(maxConnPerRoute)
-                        .setRoutePlanner(routePlanner)
-                        .build();
+                return createHttpClient();
             });
         }else{
-            return HTTP_MAP.computeIfAbsent(NO_PROXY,(k)->{
-                CloseableHttpClient httpClient=HttpClients.custom().setDefaultRequestConfig(
-                        RequestConfig.custom().setConnectionRequestTimeout(connectionRequestTimeout).setConnectTimeout(connectTimeout).setSocketTimeout(socketTimeout).build())
-                        .setRetryHandler((IOException exception,int executionCount,HttpContext context)->{
-                            if (executionCount > retryCount) {
-                                 return false;
-                             }
-                             if (exception instanceof org.apache.http.NoHttpResponseException) {
-                                 return true;
-                             }
-                             return false;
-                        })
-                        .setDefaultConnectionConfig(ConnectionConfig.custom().setBufferSize(bufferSize).setCharset(Charset.forName(getCharset())).build())
-                        .setConnectionTimeToLive(connectionLiveMinutes,TimeUnit.MINUTES)
-                        .setConnectionManager(CONNECTION_MANAGER)
-                        .setMaxConnTotal(maxConnTotal).setMaxConnPerRoute(maxConnPerRoute).build();
-                return httpClient;
-            });
+            return createHttpClient();
         }
     }
     private void populateRequestHeader(){
@@ -383,6 +375,10 @@ public class HttpClient {
             status=response.getStatusLine();
             responseHeaders=response.getAllHeaders();
             return read(r,out);
+        }finally{
+            if(!pooled){
+                http.close();
+            }
         }
     }
     private <R> R read(Class<R> r,OutputStream out) throws IOException{
