@@ -314,12 +314,12 @@ public class EnhancedSymmetricEncryptor {
 //		System.out.println(java.util.Arrays.toString(getAES("r1pcL0e9jJfur0Zv","Pwwgspjh0ukzupxy","zifteQKXAqzlaJ5w","UTF-8").encrypt("helloworld".getBytes())));
 //		System.out.println(java.util.Arrays.toString(getAES("r1pcL0e9jJfur0Zv","Pwwgspjh0ukzupxy","zifteQKXAqzlaJ5w","UTF-8").encrypt("dlrowolleh".getBytes())));
 //		System.out.println("4bKD8T/2zyzebKxCH0pMyAv0xi6zLJSatUOskOF3fY0ty+itTEdzMlhY9/iJqbrM".length());
-//		System.out.println(getAES("19hlcHCh13070t43","k760jv5Ab1HdPffs","yx30x0j603N9zjgm","UTF-8").decryptFromBase64("vAu8j0fo3auHBxUzvaxxrQ=="));
-	    Cipher cipher = Cipher.getInstance("AES/ECB/PKCS7Padding");
-	    cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec("r1pcL0e9jJfur0Zv".getBytes(), "AES"));
-	    byte[] buf= cipher.doFinal("helloworld".getBytes());
-	    System.out.println(java.util.Arrays.toString(buf));
-	    buf=getAES("r1pcL0e9jJfur0Zv").encrypt("helloworld".getBytes());
-	    System.out.println(java.util.Arrays.toString(buf));
+		System.out.println(getAES("19hlcHCh13070t43","k760jv5Ab1HdPffs","yx30x0j603N9zjgm","UTF-8").decryptFromBase64("OwYuqZZr2qsFlvCDtcLKp0RXRvrd1mTfuev7xshBatCehTjExJCtnUsLgOXTQSI46wa1QPzxiIfjPVf1eVVTtQ=="));
+//	    Cipher cipher = Cipher.getInstance("AES/ECB/PKCS7Padding");
+//	    cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec("r1pcL0e9jJfur0Zv".getBytes(), "AES"));
+//	    byte[] buf= cipher.doFinal("helloworld".getBytes());
+//	    System.out.println(java.util.Arrays.toString(buf));
+//	    buf=getAES("r1pcL0e9jJfur0Zv").encrypt("helloworld".getBytes());
+//	    System.out.println(java.util.Arrays.toString(buf));
 	}
 }

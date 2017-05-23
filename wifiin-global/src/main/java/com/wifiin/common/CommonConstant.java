@@ -224,23 +224,29 @@ public final class CommonConstant {
 		Properties properties=new Properties();
 		try {
 			String constantFileName=getConstantProperties();
-			URL url=CommonConstant.class.getResource("/");
-			if(url.getProtocol().equalsIgnoreCase("jar")){
-			    try(JarFile jar=new JarFile(new File(url.getFile().replaceFirst("^file:/+", "/").replaceFirst("!/", "")))){
-			        Enumeration<JarEntry> entries=jar.entries();
-			        while(entries.hasMoreElements()){
-			            JarEntry entry=entries.nextElement();
-			            if(!entry.isDirectory() && entry.getName().endsWith(constantFileName)){
-			                try(InputStream jarIn=jar.getInputStream(entry)){
-			                    properties.putAll(IOUtil.loadProperties(jarIn,DEFAULT_CHARSET_NAME));
-			                }
-			            }
-			        }
-			    }
-			}else{
-			    for(File props:new File(url.toURI()).listFiles()){
-	                if(props.isFile() && props.getName().endsWith(constantFileName)){
-	                    properties.putAll(IOUtil.loadProperties(props, DEFAULT_CHARSET_NAME));
+//			URL url=CommonConstant.class.getResource("/");
+			Enumeration<URL> enumeration=CommonConstant.class.getClassLoader().getResources("");
+			while(enumeration.hasMoreElements()){
+			    URL url=enumeration.nextElement();
+			    log.info("CommonConstant.loadConstant:path:{}",url);
+	            if(url.getProtocol().equalsIgnoreCase("jar")){
+	                try(JarFile jar=new JarFile(new File(url.getFile().replaceFirst("^file:/+", "/").replaceFirst("!/", "")))){
+	                    Enumeration<JarEntry> entries=jar.entries();
+	                    while(entries.hasMoreElements()){
+	                        JarEntry entry=entries.nextElement();
+	                        if(!entry.isDirectory() && entry.getName().endsWith(constantFileName)){
+	                            try(InputStream jarIn=jar.getInputStream(entry)){
+	                                properties.putAll(IOUtil.loadProperties(jarIn,DEFAULT_CHARSET_NAME));
+	                            }
+	                        }
+	                    }
+	                }
+	            }else{
+	                for(File props:new File(url.toURI()).listFiles()){
+	                    log.info("CommonConstant.loadConstant:props:{}",props);
+	                    if(props.isFile() && props.getName().endsWith(constantFileName)){
+	                        properties.putAll(IOUtil.loadProperties(props, DEFAULT_CHARSET_NAME));
+	                    }
 	                }
 	            }
 			}

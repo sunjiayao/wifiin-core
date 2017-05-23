@@ -28,6 +28,7 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
@@ -39,19 +40,24 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.wifiin.common.CommonConstant;
 import com.wifiin.common.GlobalObject;
+import com.wifiin.common.JSON;
 import com.wifiin.exception.JsonGenerationException;
+import com.wifiin.log.LoggerFactory;
 import com.wifiin.util.Help;
 import com.wifiin.util.ShutdownHookUtil;
 import com.wifiin.util.string.ThreadLocalStringBuilder;
@@ -64,15 +70,17 @@ import com.wifiin.util.string.ThreadLocalStringBuilder;
  *
  */
 public class HttpClient {
-    
-    private static final String USER_AGENT="User-Agent";
+    private static final Logger log=LoggerFactory.getLogger(HttpClient.class);
+    private static final String USER_AGENT=HTTP.USER_AGENT;
     private static final String DEFAULT_USER_AGENT="WifiinCore-HttpClient";
     private static final String REQUEST_COOKIE_HEADER="Cookie";
     private static final String RESPONSE_COOKIE_HEADER="Set-Cookie";
-    private static final String CONTENT_TYPE="Content-Type";
+    private static final String CONTENT_TYPE=HTTP.CONTENT_TYPE;
+    private static final String CONNECTION=HTTP.CONN_DIRECTIVE;
     private static final String ACCEPT_CHARSET="Accept-Charset";
     private static final String NO_PROXY="";
-    private static final PoolingHttpClientConnectionManager CONNECTION_MANAGER;
+    private static final Registry<ConnectionSocketFactory> REGISTRY;
+    private static final PoolingHttpClientConnectionManager POOLED_CONNECTION_MANAGER;
     private static final Map<String,CloseableHttpClient> HTTP_MAP=Maps.newConcurrentMap();
     static{
         RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create(); 
@@ -82,8 +90,8 @@ public class HttpClient {
         registryBuilder.register("https", sslSF);  
         ConnectionSocketFactory plainSF = new PlainConnectionSocketFactory();  
         registryBuilder.register("http", plainSF); 
-        Registry<ConnectionSocketFactory> registry = registryBuilder.build();  
-        CONNECTION_MANAGER = new PoolingHttpClientConnectionManager(registry);
+        REGISTRY = registryBuilder.build();  
+        POOLED_CONNECTION_MANAGER = new PoolingHttpClientConnectionManager(REGISTRY);
         ShutdownHookUtil.addHook(()->{
             HTTP_MAP.values().forEach((http)->{
                 try{
@@ -304,7 +312,7 @@ public class HttpClient {
     public <P> void access(HttpMethod method,OutputStream out) throws IOException{
         communicate(method,Void.class,out);
     }
-    private CloseableHttpClient createHttpClient(){
+    private CloseableHttpClient createHttpClient(HttpClientConnectionManager httpClientConnectionManager){
         HttpClientBuilder httpClientBuilder=HttpClients.custom().setDefaultRequestConfig(
                 RequestConfig.custom().setConnectionRequestTimeout(connectionRequestTimeout).setConnectTimeout(connectTimeout).setSocketTimeout(socketTimeout).build())
                 .setRetryHandler((IOException exception,int executionCount,HttpContext context)->{
@@ -318,7 +326,7 @@ public class HttpClient {
                 })
                 .setDefaultConnectionConfig(ConnectionConfig.custom().setBufferSize(bufferSize).setCharset(Charset.forName(getCharset())).build())
                 .setConnectionTimeToLive(connectionLiveMinutes,TimeUnit.MINUTES)
-                .setConnectionManager(CONNECTION_MANAGER)
+                .setConnectionManager(httpClientConnectionManager)
                 .setMaxConnTotal(maxConnTotal).setMaxConnPerRoute(maxConnPerRoute);
         boolean proxy=Help.isNotEmpty(proxyHost) && proxyPort>0;
         if(useProxy || proxy){
@@ -336,10 +344,10 @@ public class HttpClient {
     private CloseableHttpClient httpClient(){
         if(pooled){
             return HTTP_MAP.computeIfAbsent(ThreadLocalStringBuilder.builder().append(proxyHost).append(":").append(proxyPort).toString(),(k)->{
-                return createHttpClient();
+                return createHttpClient(POOLED_CONNECTION_MANAGER);
             });
         }else{
-            return createHttpClient();
+            return createHttpClient(new BasicHttpClientConnectionManager(REGISTRY));
         }
     }
     private void populateRequestHeader(){
@@ -350,7 +358,7 @@ public class HttpClient {
         }
         if(Help.isNotEmpty(this.headers)){
             for(Map.Entry<String,String> entry:headers.entrySet()){
-                requestData.addHeader(entry.getKey(),entry.getValue());
+                requestData.setHeader(entry.getKey(),entry.getValue());
             }
         }
         if(httpVersion!=null){
@@ -370,6 +378,9 @@ public class HttpClient {
         CloseableHttpClient http=httpClient();
         requestData=method.method(url,requestEntity);
         populateRequestHeader();
+        if(log.isDebugEnabled()){
+            log.debug("HttpClient:header:{};{};{};{}",url,requestData.getFirstHeader(USER_AGENT),requestData.getFirstHeader(CONNECTION),requestData.getProtocolVersion());
+        }
         try(CloseableHttpResponse response=http.execute(requestData,context)){
             responseEntity=response.getEntity();
             status=response.getStatusLine();
@@ -544,8 +555,8 @@ public class HttpClient {
     }
     public void jsonEntity(Object content){
         try{
-            stringEntity(GlobalObject.getJsonMapper().writeValueAsString(content));
-        }catch(UnsupportedEncodingException | JsonProcessingException e){
+            stringEntity(JSON.toJSON(content));
+        }catch(UnsupportedEncodingException e){
             throw new JsonGenerationException(e);
         }
     }

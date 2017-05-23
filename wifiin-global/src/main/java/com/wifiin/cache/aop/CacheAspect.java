@@ -5,7 +5,6 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import com.wifiin.cache.HeapCache;
 import com.wifiin.cache.aop.exception.CacheAOPException;
@@ -20,7 +19,7 @@ import com.wifiin.util.text.template.TextTemplateFormatterFactory;
  * @author Running
  *
  */
-@Component
+//@Component
 @Aspect
 public class CacheAspect{
     private static final String[] EMPTY_STRING_ARRAY=CommonConstant.EMPTY_STRING_ARRAY;

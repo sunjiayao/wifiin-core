@@ -151,8 +151,8 @@ public enum TelecomOperator{
         return matches(CHINA_NET,getByImsi(imsi));
     }
     private static final Pattern CMCC_IMSI_START=Pattern.compile("^4600[027]\\d*$");
-    private static final Pattern CHINA_UNICOM_START=Pattern.compile("^46001\\d*$");
-    private static final Pattern CHINA_NET_START=Pattern.compile("^46003\\d*$");
+    private static final Pattern CHINA_UNICOM_START=Pattern.compile("^4600[16]\\d*$");
+    private static final Pattern CHINA_NET_START=Pattern.compile("^460(0[35]|11)\\d*$");
     public static TelecomOperator getByImsi(String imsi){
         if(CMCC_IMSI_START.matcher(imsi).matches()){
             return CMCC;

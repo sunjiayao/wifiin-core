@@ -72,9 +72,9 @@ public class NettyServer<I,O extends OutputObject,T extends AbstractCommonCodec<
                                   channelEventLoopGroups.add(group);
                                   ch.pipeline()
                                     .addLast(group,
-                                            new IdleStateHandler(0, 0, params.maxIdleSeconds()),
-                                            new NettyConnectManageHandler("SERVER",params.channelConnectChecker()),
-                                            channelHandlers[channelHandlers.length-1]);
+                                             new IdleStateHandler(0, 0, params.maxIdleSeconds()),
+                                             new NettyConnectManageHandler("SERVER",params.channelConnectChecker()),
+                                             channelHandlers[i]);
                               }
                           }
                      });

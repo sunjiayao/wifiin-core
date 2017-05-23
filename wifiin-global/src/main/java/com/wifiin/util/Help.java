@@ -58,7 +58,7 @@ import com.wifiin.util.string.ThreadLocalStringBuilder;
  * 
  * loadProperties storeProperties<br/>
  * 加载/保存properties文件<br/>
- * 
+ *
  * trim<br/>
  * 去掉字符串两头的空白字符和\u00a0<br/>
  * 
@@ -482,21 +482,6 @@ public class Help {
 	public static boolean isEmpty(Object[] array){
 		return array==null || array.length==0;
 	}
-	/**
-	 * 判断value是否包含在array内
-	 * @param array
-	 * @param value
-	 * @return
-	 */
-	public static boolean contains(Object[] array,Object value){
-		for(int i=0,l=array.length;i<l;i++){
-			Object o=array[i];
-			if((o==null && value==null) || (o!=null && o.equals(value))){
-				return true;
-			}
-		}
-		return false;
-	}
 	public static boolean contains(String[] array,String value){
 		for(int i=0,l=array.length;i<l;i++){
 			Object o=array[i];
@@ -506,7 +491,7 @@ public class Help {
 		}
 		return false;
 	}
-	public static boolean contains(int[] array,int value){
+    public static boolean contains(int[] array,int value){
 		for(int i=0,l=array.length;i<l;i++){
 			int o=array[i];
 			if(o==value){
@@ -515,7 +500,22 @@ public class Help {
 		}
 		return false;
 	}
-	public static boolean contains(long[] array,long value){
+    /**
+     * 判断value是否包含在array内
+     * @param array
+     * @param value
+     * @return
+     */
+    public static boolean contains(Object[] array,Object value){
+        for(int i=0,l=array.length;i<l;i++){
+            Object o=array[i];
+            if((o==null && value==null) || (o!=null && o.equals(value))){
+                return true;
+            }
+        }
+        return false;
+    }
+    public static boolean contains(long[] array,long value){
 		for(int i=0,l=array.length;i<l;i++){
 			long o=array[i];
 			if(o==value){
