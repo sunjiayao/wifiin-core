@@ -422,13 +422,13 @@ public class Help {
 	 * 判断给定对象是否为null 空串或"0"或0
 	 */
 	public static boolean isEmptyOrZero(Object src){
-		return isEmpty(src) || "0".equals(src) || (src instanceof Number && ((Number)src).intValue()==0);
+		return isEmpty(src) || (src instanceof String && "0".equals(src)) || (src instanceof Number && ((Number)src).longValue()==0L);
 	}
 	/**
 	 * 判断给定对象是否为null 空串或"\\s*0\\s*"或0
 	 */
 	public static boolean isEmptyOrZeroWithBlank(Object src){
-		return isEmpty(src) || (src instanceof String && "0".equals(((String)src).trim())) || (src instanceof Number && ((Number)src).intValue()==0);
+		return isEmpty(src) || (src instanceof String && "0".equals(((String)src).trim())) || (src instanceof Number && ((Number)src).longValue()==0L);
 	}
 	/**
 	 * 对象为空的判断

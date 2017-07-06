@@ -42,8 +42,10 @@ public class IOUtil {
         ByteArrayOutputStream buf=data.stream;
         byte[] bs=data.buf;
         int l=0;
-        while((l=in.read(bs))>0){
-            buf.write(bs,0,l);
+        while((l=in.read(bs))>=0){
+            if(l>0){
+                buf.write(bs,0,l);
+            }
         }
         buf.close();
         try{

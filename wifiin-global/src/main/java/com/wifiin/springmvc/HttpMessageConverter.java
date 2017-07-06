@@ -16,8 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -49,17 +47,20 @@ import com.wifiin.util.io.IOUtil;
 
 public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter<E>{
     private static final Logger log=LoggerFactory.getLogger(HttpMessageConverter.class);
-    private static final String[] ONE_EMPTY_STRING_ARRAY={""};
+    private static final String[] EMPTY_STRING_ARRAY={};
+    private static final String[] ONE_EMPTY_STRING_ARRAY={"/"};
     private List<MediaType> requestMediaTypes;
     private List<MediaType> responseMediaTypes;
     private CryptoType defaultCryptoType=CryptoType.NONE;
+    private Class<? extends MessageConverter> defaultMessageConverter=Base64Converter.class;
     private Map<String,Cryptor> cryptors;
     private Map<String,Compressor> requestCompressor;
     private Map<String,Compressor> responseCompressor;
+    private Map<String,MessageConverter> messageConverter;
     private Map<CompressorType,Compressor> compressors;
     private Charset charset;
     
-    public void HttpMessageConverter(){
+    public void init(){
         Pattern moreThanOnePathSplitor=Pattern.compile("/{2,}");
         Pattern endingPathSplitor=Pattern.compile("/$");
         Map<CryptoType,Cryptor> cryptors=cryptors();
@@ -67,31 +68,52 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
         Map<String,Cryptor> finalCryptors=Maps.newHashMap();
         Map<String,Compressor> requestCompressor=Maps.newHashMap();
         Map<String,Compressor> responseCompressor=Maps.newHashMap();
+        Map<String,MessageConverter> messageConverter=Maps.newHashMap();
         ApplicationContextHolder.getInstance().getBeansWithAnnotation(Controller.class).values().forEach((controller)->{
             Class cls=controller.getClass();
-            String[] requestMappingsOnController=getRequestMappings(cls);
-            Method[] methods=cls.getMethods();
-            Arrays.stream(requestMappingsOnController).forEach((rmc)->{
-                Arrays.stream(methods).forEach((m)->{
-                    String[] requestMappingsOnMethod=getRequestMappings(m);
-                    CryptoType crypto=getHttpMessageCryptoType(m);
-                    CompressorType requestCompressorType=getHttpRequestMessageCompressorType(m);
-                    CompressorType responseCompressorType=getHttpResponseMessageCompressorType(m);
-                    Arrays.stream(requestMappingsOnMethod).forEach((rmm)->{
-                        String path=Help.concat(new String[]{rmc,rmm},"/");
-                        path=moreThanOnePathSplitor.matcher(path).replaceAll("");
-                        path=endingPathSplitor.matcher(path).replaceAll("");
-                        finalCryptors.put(path,cryptors.get(crypto));
-                        requestCompressor.put(path,compressors.get(requestCompressorType));
-                        responseCompressor.put(path,compressors.get(responseCompressorType));
+            Class controllerClass=cls;
+            do{
+                String[] requestMappingsOnController=getRequestMappings(controllerClass);
+                Method[] methods=controllerClass.getMethods();
+                Arrays.stream(requestMappingsOnController).forEach((rmc)->{
+                    Arrays.stream(methods).forEach((m)->{
+                        String[] requestMappingsOnMethod=getRequestMappings(m);
+                        CryptoType crypto=getHttpMessageCryptoType(m);
+                        CompressorType requestCompressorType=getHttpRequestMessageCompressorType(m);
+                        CompressorType responseCompressorType=getHttpResponseMessageCompressorType(m);
+                        MessageConverter mc=getHttpMessageConverter(m);
+                        Arrays.stream(requestMappingsOnMethod).forEach((rmm)->{
+                            String path=Help.concat(new String[]{rmc,rmm},"/");
+                            path=moreThanOnePathSplitor.matcher(path).replaceAll("/");
+                            if(path.length()>1){
+                                path=endingPathSplitor.matcher(path).replaceAll("");
+                            }
+                            path=extractPurePath(path);
+                            Cryptor cryptor=cryptors.get(crypto);
+                            if(cryptor!=null){
+                                finalCryptors.put(path,cryptor);
+                            }
+                            requestCompressor.put(path,compressors.get(requestCompressorType));
+                            responseCompressor.put(path,compressors.get(responseCompressorType));
+                            messageConverter.put(path,mc);
+                        });
                     });
                 });
-            });
+                controllerClass=controllerClass.getSuperclass();
+            }while(!controllerClass.isAssignableFrom(Object.class));
         });
         this.cryptors=finalCryptors;
         this.requestCompressor=requestCompressor;
         this.responseCompressor=responseCompressor;
+        this.messageConverter=messageConverter;
         this.compressors=compressors;
+    }
+    private static String extractPurePath(String path){
+        path=path.trim();
+        if(path.endsWith(".do")){
+            path=path.substring(0,path.length()-3);
+        }
+        return path;
     }
     private Map<CryptoType,Cryptor> cryptors(){
         Map<String,Cryptor> cryptorBeans=ApplicationContextHolder.getInstance().getBeans(Cryptor.class);
@@ -122,7 +144,12 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
     @SuppressWarnings({"unchecked","rawtypes"})
     private String[] getRequestMappings(Class controller){
         RequestMapping requestMapping=(RequestMapping)controller.getAnnotation(RequestMapping.class);
-        return getRequestMappings(requestMapping);
+        String[] mappings= getRequestMappings(requestMapping);
+        if(Help.isEmpty(mappings)){
+            return ONE_EMPTY_STRING_ARRAY;
+        }else{
+            return mappings;
+        }
     }
     private String[] getRequestMappings(Method method){
         RequestMapping requestMapping=(RequestMapping)method.getAnnotation(RequestMapping.class);
@@ -130,7 +157,7 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
     }
     private String[] getRequestMappings(RequestMapping requestMapping){
         if(requestMapping==null){
-            return ONE_EMPTY_STRING_ARRAY;
+            return EMPTY_STRING_ARRAY;
         }
         return requestMapping.value();
     }
@@ -141,6 +168,16 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
         }else{
             return message.value();
         }
+    }
+    public MessageConverter getHttpMessageConverter(Method method){
+        MessageConverterType converterType=method.getAnnotation(MessageConverterType.class);
+        Class<? extends MessageConverter> converter=null;
+        if(converterType==null){
+            converter=this.defaultMessageConverter;
+        }else{
+            converter=converterType.value();
+        }
+        return ApplicationContextHolder.getInstance().getBean(converter);
     }
     private CompressorType getHttpRequestMessageCompressorType(Method method){
         CompressedRequest message=(CompressedRequest)method.getAnnotation(CompressedRequest.class);
@@ -231,7 +268,12 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
      * @return 请求体内容
      * @throws IOException
      */
-    protected byte[] read(HttpInputMessage inMsg) throws Exception{
+    protected byte[] read(String uri,HttpInputMessage inMsg) throws Exception{
+        if(log.isDebugEnabled()){
+            log.debug("HttpMessageConverter.read:{}",inMsg);
+            log.debug("HttpMessageConverter.read:headers:{}",inMsg.getHeaders());
+            log.debug("HttpMessageConverter.read:ContentLength:{}",inMsg.getHeaders().getContentLength());
+        }
         return IOUtil.read(inMsg.getBody(),(int)inMsg.getHeaders().getContentLength());
     }
     /**
@@ -239,37 +281,61 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
      * @param content
      * @return 
      */
-    protected byte[] inputMessageConvert(byte[] content) throws Exception{
-        return Base64.decodeBase64(content);
+    protected byte[] inputMessageConvert(String uri,byte[] content) throws Exception{
+        return this.messageConverter.get(uri).inputConvert(content);
+    }
+    private Cryptor cryptor(String uri){
+        Cryptor cryptor=this.cryptors.get(uri);
+        if(cryptor==null){
+            cryptor=this.cryptors.get(uri.substring(0,uri.lastIndexOf('.')));
+        }
+        return cryptor;
     }
     /**
      * 解密，如果报文没有加密就不用覆盖此方法
      * @param buf 密文
      * @return 明文
      */
-    protected byte[] decrypt(byte[] buf) throws Exception{
-        String uri=request().getRequestURI();
+    protected byte[] decrypt(String uri,byte[] buf) throws Exception{
         int idx=uri.indexOf("/v")+2;
         String v=uri.substring(idx,uri.indexOf("/",idx));
-        return this.cryptors.get(uri).encrypt(v,buf);
+        return cryptor(uri).decrypt(v,buf);
+    }
+    private Compressor compressor(){
+        HttpServletRequest request=request();
+        String compressed=request.getQueryString();
+        try{
+            if(Help.isEmpty(compressed)){
+                if(requestCompressor==null){
+                    return null;
+                }
+                String uri=request.getRequestURI();
+                Compressor compressor=this.requestCompressor.get(uri);
+                if(compressor==null){
+                    compressor=this.requestCompressor.get(uri.substring(0,uri.lastIndexOf('.')));
+                }
+                if(compressor==null){
+                    return null;
+                }
+                return compressor;
+            }else{
+                return this.compressors.get(CompressorType.valueOf(compressed.toUpperCase()));
+            }
+        }catch(CompressorException e){
+            return null;
+        }
     }
     /**
      * 解压，如果报文没有压缩就不用覆盖此方法
      * @param buf 压缩的报文
      * @return 解压的报文
      */
-    protected byte[] uncompress(byte[] buf) throws Exception{
-        HttpServletRequest request=request();
-        String compressed=request.getQueryString();
-        try{
-            if(Help.isEmpty(compressed)){
-                return this.requestCompressor.get(request.getRequestURI()).uncompress(buf);
-            }else{
-                return this.compressors.get(CompressorType.valueOf(compressed.toUpperCase())).compress(buf);
-            }
-        }catch(CompressorException e){
+    protected byte[] uncompress(String uri,byte[] buf) throws Exception{
+        Compressor compressor=compressor();
+        if(compressor==null){
             return buf;
         }
+        return compressor.uncompress(buf);
     }
     /**
      * 把报文的字节数组转换成对象，当前实现是把字节数组buf当作json解析成ctxCls的对象
@@ -283,18 +349,19 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
      * @throws JsonParseException 
      */
     @SuppressWarnings({"unchecked"})
-    protected E convert(Type type,Class<?> ctxCls,byte[] buf) throws Exception{
+    protected E convert(String uri,Type type,Class<?> ctxCls,byte[] buf) throws Exception{
         return GlobalObject.getJsonMapper().readValue(buf, (Class<E>)type);
     }
     @Override
     public E read(Type type,Class<?> ctxCls, HttpInputMessage inMsg) throws IOException,HttpMessageNotReadableException{
         byte[] buf=null;
         try{
-            buf=read(inMsg);
-            buf=inputMessageConvert(buf);
-            buf=decrypt(buf);
-            buf=uncompress(buf);
-            E e=convert(type,ctxCls,buf);
+            String uri=extractPurePath(request().getRequestURI());
+            buf=read(uri,inMsg);
+            buf=inputMessageConvert(uri,buf);
+            buf=decrypt(uri,buf);
+            buf=uncompress(uri,buf);
+            E e=convert(uri,type,ctxCls,buf);
             request().setAttribute(SpringMVCConstant.REQUEST_PARAMS,e);
             return e;
         }catch(Exception e){
@@ -311,10 +378,11 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
             if(Help.isEmpty(request.getAttribute(SpringMVCConstant.RESULT_FOR_LOG))){
                 request.setAttribute(SpringMVCConstant.RESULT_FOR_LOG,t);
             }
-            content=convert(t,type);
-            content=compress(content);
-            content=encrypt(content);
-            content=outputMessageConvert(content);
+            String uri=extractPurePath(request.getRequestURI());
+            content=convert(uri,t,type);
+            content=compress(uri,content);
+            content=encrypt(uri,content);
+            content=outputMessageConvert(uri,content);
             outMsg.getBody().write(content);
         }catch(Exception e){
             log.warn("HttpMessageConverter.write:{};{}",Base64.encodeBase64String(content),e);
@@ -328,7 +396,7 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
      * @return 响应数据字节
      * @throws Exception
      */
-    protected byte[] convert(E t,Type type)throws Exception{
+    protected byte[] convert(String uri,E t,Type type)throws Exception{
         return GlobalObject.getJsonMapper().writeValueAsString(t).getBytes(charset);
     }
     /**
@@ -336,18 +404,12 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
      * @param content
      * @return
      */
-    protected byte[] compress(byte[] content)throws Exception{
-        HttpServletRequest request=request();
-        String compressed=request.getQueryString();
-        try{
-            if(Help.isEmpty(compressed)){
-                return this.responseCompressor.get(request.getRequestURI()).compress(content);
-            }else{
-                return this.compressors.get(CompressorType.valueOf(compressed.toUpperCase())).compress(content);
-            }
-        }catch(CompressorException e){
+    protected byte[] compress(String uri,byte[] content)throws Exception{
+        Compressor compressor=compressor();
+        if(compressor==null){
             return content;
         }
+        return compressor.compress(content);
     }
     
     /**
@@ -355,19 +417,18 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
      * @param content
      * @return
      */
-    protected byte[] encrypt(byte[] content)throws Exception{
-        String uri=request().getRequestURI();
+    protected byte[] encrypt(String uri,byte[] content)throws Exception{
         int idx=uri.indexOf("/v")+2;
         String v=uri.substring(idx,uri.indexOf("/",idx));
-        return this.cryptors.get(uri).encrypt(v,content);
+        return cryptor(uri).encrypt(v,content);
     }
     /**
      * 把响应数据转化成要写回客户端，默认什么也不干。比如转为base64再转化成字节数组
      * @param content
      * @return
      */
-    protected byte[] outputMessageConvert(byte[] content)throws Exception{
-        return Base64.encodeBase64(content);
+    protected byte[] outputMessageConvert(String uri,byte[] content)throws Exception{
+        return this.messageConverter.get(uri).outputConvert(content);
     }
     @Override
     protected E readInternal(Class<? extends E> clazz, HttpInputMessage inMsg) throws IOException,HttpMessageNotReadableException{
@@ -404,5 +465,4 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
      // should not be called, since we override canRead/Write instead
         throw new UnsupportedOperationException();
     }
-    
 }

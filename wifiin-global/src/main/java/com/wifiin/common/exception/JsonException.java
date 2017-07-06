@@ -1,7 +1,6 @@
 package com.wifiin.common.exception;
 
 public class JsonException extends RuntimeException{
-
     /**
      * 
      */

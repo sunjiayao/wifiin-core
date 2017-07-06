@@ -47,6 +47,7 @@ public class ControllerLogAspect{
             result=point.proceed();
             Object resultForLog=request.getAttribute(SpringMVCConstant.RESULT_FOR_LOG);
             content=new LogContent(System.currentTimeMillis()-start,args,resultForLog==null?result:resultForLog,uri,ip);
+            log.info(content.toString());
         }catch(Throwable e){
             try{
                 Class returnType=targetMethod.getReturnType();
@@ -62,8 +63,8 @@ public class ControllerLogAspect{
                 e.addSuppressed(e1);
             }
             content=new LogContentWithException(System.currentTimeMillis()-start,args,result,uri,ip,e);
+            log.warn(content.toString(),e);
         }
-        log.info(content.toString());
         return result;
     }
     private class LogContent{

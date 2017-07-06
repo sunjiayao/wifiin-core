@@ -34,13 +34,13 @@ public class BeanUtil{
     /**
      * 返回指定类对象的所有属性getter
      */
-    public static <O> Map<String,Getter<?,?>> getters(Class<O> clazz){
+    public static <O> Map<String,Getter> getters(Class<O> clazz){
         return GetSetUtil.getGetters(clazz);
     }
     /**
      * 返回指定对象的所有属性setter
      */
-    public static <O> Map<String,Setter<?,?>> setters(Class<O> clazz){
+    public static <O> Map<String,Setter> setters(Class<O> clazz){
         return GetSetUtil.getSetters(clazz);
     }
     /**
@@ -92,11 +92,14 @@ public class BeanUtil{
         return populateToMap(src,populateEmpty,(v)->{return v;},fields);
     }
     @SuppressWarnings({"unchecked","rawtypes"})
-    public static <V> Map<String,V> populateToMap(Object src,boolean populateEmpty,Function<Object,V> valueConverter, String... fields){
-        Map<String,Getter<?,?>> getters=BeanUtil.getters(src.getClass());
+    public static <O,V> Map<String,V> populateToMap(O src,boolean populateEmpty,Function<Object,V> valueConverter, String... fields){
+        Map<String,Getter> getters=BeanUtil.getters(src.getClass());
         Map<String,V> m=Maps.newHashMap();
         for(int i=0,l=fields.length;i<l;i++){
             String f=fields[i];
+            if("class".equals(f)){
+                continue;
+            }
             Getter getter=getters.get(f);
             if(getter==null){
                 String k="get"+f.substring(0,1).toUpperCase()+f.substring(1);
@@ -112,8 +115,11 @@ public class BeanUtil{
     @SuppressWarnings({"unchecked","rawtypes"})
     public static <V> Map<String,V> populateToMap(Object src,boolean populateEmpty,Function<Object,V> valueConverter){
         Map<String,V> m=Maps.newHashMap();
-        for(Map.Entry<String,Getter<?,?>> entry:BeanUtil.getters(src.getClass()).entrySet()){
+        for(Map.Entry<String,Getter> entry:BeanUtil.getters(src.getClass()).entrySet()){
             String name=entry.getKey();
+            if("class".equals(name) || "getClass".equals(name)){
+                continue;
+            }
             if(name.startsWith("get")){
                 name=name.substring(3,4).toLowerCase()+name.substring(4);
             }
@@ -124,32 +130,39 @@ public class BeanUtil{
         }
         return m;
     }
-    public static <O> O populateFromMap(Map<String,Object> src, Class<O> cls,boolean populateEmpty,boolean deep){
+    public static <O> O populateFromMap(Map<String,Object> src, Class<O> cls,boolean populateEmpty,boolean deep,boolean ignoreException){
         try{
-            return populateFromMap(src,cls.newInstance(),populateEmpty,deep);
+            return populateFromMap(src,cls.newInstance(),populateEmpty,deep,ignoreException);
         }catch(InstantiationException | IllegalAccessException e){
             throw new BeanPropertyPopulationException(e);
         }
     }
     
     @SuppressWarnings({"unchecked","rawtypes"})
-    public static <O> O populateFromMap(Map<String,Object> src,O dest,boolean populateEmpty,boolean deep){
+    public static <O> O populateFromMap(Map<String,Object> src,O dest,boolean populateEmpty,boolean deep,boolean ignoreException){
         Class clazz=dest.getClass();
         Map<String,Setter<?,?>> setters=setters(clazz);
         for(Map.Entry<String,Object> entry:src.entrySet()){
-            String property=entry.getKey();
-            Setter setter=setters.get(property);
-            if(setter!=null){
-                populate(entry.getValue(),dest,setter,populateEmpty,deep);
+            try{
+                String property=entry.getKey();
+                Setter setter=setters.get(property);
+                if(setter!=null){
+                    populate(entry.getValue(),dest,setter,populateEmpty,deep,ignoreException);
+                }
+            }catch(Exception e){
+                e=new BeanPropertyPopulationException(e);
+                if(!ignoreException){
+                    throw (BeanPropertyPopulationException)e;
+                }
             }
         }
         return dest;
     }
-    public static <O> O populateFromMap(Map<String,Object> src, Class<O> cls, boolean populateEmpty, boolean deep, String... properties) throws InstantiationException, IllegalAccessException{
-        return populateFromMap(src,cls.newInstance(),populateEmpty,deep,properties);
+    public static <O> O populateFromMap(Map<String,Object> src, Class<O> cls, boolean populateEmpty, boolean deep,boolean ignoreException, String... properties) throws InstantiationException, IllegalAccessException{
+        return populateFromMap(src,cls.newInstance(),populateEmpty,deep,ignoreException,properties);
     }
     @SuppressWarnings({"unchecked","rawtypes"})
-    public static <O> O populateFromMap(Map<String,Object> src,O dest,boolean populateEmpty,boolean deep,String... properties){
+    public static <O> O populateFromMap(Map<String,Object> src,O dest,boolean populateEmpty,boolean deep,boolean ignoreException,String... properties){
         Class clazz=dest.getClass();
         Map<String,Setter<?,?>> setters=setters(clazz);
         for(int i=0,l=properties.length;i<l;i++){
@@ -158,38 +171,45 @@ public class BeanUtil{
                 Setter setter=setters.get(property);
                 if(setter!=null){
                     Object value=src.get(property);
-                    populate(value,dest,setter,populateEmpty,deep);
+                    populate(value,dest,setter,populateEmpty,deep,ignoreException);
                 }
             }catch(Exception e){}
         }
         return dest;
     }
-    public static <O> O populate(Object src, Class<O> cls,boolean populateEmpty, boolean deep) {
+    public static <O> O populate(Object src, Class<O> cls,boolean populateEmpty, boolean deep,boolean ignoreException) {
         try{
-            return populate(src,cls.newInstance(),populateEmpty,deep);
+            return populate(src,cls.newInstance(),populateEmpty,deep,ignoreException);
         }catch(InstantiationException | IllegalAccessException e){
             throw new BeanPropertyPopulationException(e);
         }
     }
     @SuppressWarnings({"unchecked","rawtypes"})
-    public static <O> O populate(Object src,O dest,boolean populateEmpty,boolean deep){
+    public static <O> O populate(Object src,O dest,boolean populateEmpty,boolean deep,boolean ignoreException){
         if(src instanceof Map){
-            return (O)populateFromMap((Map)src,dest,populateEmpty,deep);
+            return (O)populateFromMap((Map)src,dest,populateEmpty,deep,ignoreException);
         }
         Class clazz=dest.getClass();
         Map<String,Setter<?,?>> setters=setters(clazz);
-        for(Entry<String,Getter<?,?>> entry:getters(src.getClass()).entrySet()){
-            Setter setter=setters.get(entry.getKey());
-            if(setter!=null){
-                Object value=entry.getValue();
-                populate(value,dest,setter,populateEmpty,deep);
+        for(Entry<String,Getter> entry:getters(src.getClass()).entrySet()){
+            try{
+                Setter setter=setters.get(entry.getKey());
+                if(setter!=null){
+                    Object value=entry.getValue().get(src);
+                    populate(value,dest,setter,populateEmpty,deep,ignoreException);
+                }
+            }catch(Exception e){
+                e=new BeanPropertyPopulationException(e);
+                if(!ignoreException){
+                    throw (BeanPropertyPopulationException)e;
+                }
             }
         }
         return dest;
     }
     
     @SuppressWarnings({"unchecked","rawtypes"})
-    private static void populate(Object value,Object dest,Setter setter,boolean populateEmpty,boolean deep){
+    private static void populate(Object value,Object dest,Setter setter,boolean populateEmpty,boolean deep,boolean ignoreException){
         if(populateEmpty || Help.isNotEmpty(value)){
             Class propertyType=setter.propertyType();
             if(value instanceof String){
@@ -203,13 +223,13 @@ public class BeanUtil{
             }else if(propertyType.isAssignableFrom(StringBuilder.class) && deep){
                 value=new StringBuilder(value.toString());
             }else if(!(propertyType.isPrimitive() || propertyType.equals(Number.class) || Number.class.isAssignableFrom(propertyType))){
-                value=newValue(propertyType,value,populateEmpty,deep);
+                value=newValue(propertyType,value,populateEmpty,deep,ignoreException);
             }
             setter.set(dest,value);
         }
     }
     @SuppressWarnings({"rawtypes","unchecked"})
-    private static Object newValue(Class<?> propertyType,Object value,boolean populateEmpty,boolean deep){
+    private static Object newValue(Class<?> propertyType,Object value,boolean populateEmpty,boolean deep,boolean ignoreException){
         if(!deep){
             return value;
         }
@@ -385,14 +405,14 @@ public class BeanUtil{
             Object newValue=Array.newInstance(propertyType,len);
             for(int i=0;i<len;i++){
                 Object v=Array.get(value,i);
-                Array.set(newValue,i,newValue(v.getClass(),v,populateEmpty,deep));
+                Array.set(newValue,i,newValue(v.getClass(),v,populateEmpty,deep,ignoreException));
             }
             value=newValue;
         }else if(Collection.class.isAssignableFrom(propertyType) && value instanceof Collection){
             try{
                 Collection c=(Collection)value.getClass().newInstance();
                 for(Object v:(Collection)value){
-                    c.add(newValue(v.getClass(),v,populateEmpty,deep));
+                    c.add(newValue(v.getClass(),v,populateEmpty,deep,ignoreException));
                 }
                 value=c;
             }catch(Exception e){
@@ -405,7 +425,7 @@ public class BeanUtil{
                     Map.Entry entry=(Map.Entry)o;
                     Object k=entry.getKey();
                     Object v=entry.getValue();
-                    m.put(newValue(k==null?Object.class:k.getClass(),k,populateEmpty,deep),newValue(v==null?Object.class:v.getClass(),v,populateEmpty,deep));
+                    m.put(newValue(k==null?Object.class:k.getClass(),k,populateEmpty,deep,ignoreException),newValue(v==null?Object.class:v.getClass(),v,populateEmpty,deep,ignoreException));
                 }
                 value=m;
             }catch(Exception e){
@@ -413,7 +433,7 @@ public class BeanUtil{
             }
         }else{
             try{
-                value=populate(value,propertyType.newInstance(),populateEmpty,deep);
+                value=populate(value,propertyType.newInstance(),populateEmpty,deep,ignoreException);
             }catch(Exception e){
                 throw new BeanPropertyPopulationException(e);
             }

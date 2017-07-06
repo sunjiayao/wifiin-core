@@ -305,30 +305,44 @@ public class ConfigManager{
             throw new ConfigException(e);
         }
     }
+//    /**
+//     * 用curator从zookeeper得到指定key的数据，数据类型是cls,如果key变化了执行watchConsumer
+//     * @param key
+//     * @param cls
+//     * @param watcherConsumer
+//     * @return
+//     */
+//    private <E> E getDataByCurator(String key,Class<E> cls,Consumer<E> watcherConsumer){
+//        E e=getDataByCurator(key,cls,watcherConsumer,curator);
+//        if(Help.isEmpty(e)){
+//            e=getDataByCurator(key,cls,watcherConsumer,globalCurator);//此处不能形成递归，否则在值实际不存在时会造成无穷递归
+//        }
+//        return e;
+//    }
     /**
-     * 用curator从zookeeper得到指定key的数据，数据类型是cls,如果key变化了执行watchConsumer
-     * @param key
-     * @param cls
+     * 
+     * @param key  
+     * @param bytesFn
      * @param watcherConsumer
      * @return
      */
-    private <E> E getDataByCurator(String key,Class<E> cls,Consumer<E> watcherConsumer){
-        E e=getDataByCurator(key,cls,watcherConsumer,curator);
+    private <E> E getDataByCurator(String key,Function<byte[],E> bytesFn,Consumer<E> watcherConsumer){
+        E e=getDataByCurator(key,bytesFn,watcherConsumer,curator);
         if(Help.isEmpty(e)){
-            e=getDataByCurator(key,cls,watcherConsumer,globalCurator);//此处不能形成递归，否则在值实际不存在时会造成无穷递归
+            e=getDataByCurator(key,bytesFn,watcherConsumer,globalCurator);//此处不能形成递归，否则在值实际不存在时会造成无穷递归
         }
         return e;
     }
-    /**
-     * 从指定curator对象获取数据
-     * @param key
-     * @param cls
-     * @param curator
-     * @return
-     */
-    private <E> E getDataByCurator(String key,Class<E> cls,CuratorFramework curator) {
-        return getDataByCurator(key,cls,null,curator);
-    }
+//    /**
+//     * 从指定curator对象获取数据
+//     * @param key
+//     * @param cls
+//     * @param curator
+//     * @return
+//     */
+//    private <E> E getDataByCurator(String key,Class<E> cls,CuratorFramework curator) {
+//        return getDataByCurator(key,cls,null,curator);
+//    }
     /**
      * 从指定curator得到key的值，值类型是cls，值变化了执行watchConsumer
      * @param key
@@ -1065,31 +1079,35 @@ public class ConfigManager{
     private <K,V> Map<K,V> mergeMap(Class<?> destMapClass,Class<?> originMapClass,String... keys){
         return mergeMap(destMapClass,originMapClass,null,keys);
     }
+    private <K,V,M extends Map<K,V>> M mergeMap0(Class<?> destMapClass,Class<?> originMapClass,Consumer<M> watchConsumer,String... keys){
+        Map<K,V> map=null;
+        try{
+            map=(Map<K,V>)destMapClass.newInstance();
+            for(int i=0,l=keys.length;i<l;i++){
+                String key=keys[i];
+                try{
+                    Consumer<Map<K,V>> consumer=(Map<K,V> newMap)->{
+                        M mergedNewMap=mergeMap0(destMapClass,originMapClass,watchConsumer,keys);
+                        if(watchConsumer!=null){
+                            watchConsumer.accept(mergedNewMap);
+                        }
+                        constants.put(keys[0],mergedNewMap);
+                    };
+                    map.putAll(Help.convert(getDataByCurator(key,(Class<Map<K,V>>)originMapClass,consumer,globalCurator),Collections.emptyMap()));
+                    map.putAll(Help.convert(getDataByCurator(key,(Class<Map<K,V>>)originMapClass,consumer,curator),Collections.emptyMap()));
+                }catch(Exception e){
+                    throw new ConfigException(e); 
+                }
+            }
+            return (M)map;
+        }catch(InstantiationException | IllegalAccessException e1){
+            throw new ConfigException(e1);
+        }
+    }
     @SuppressWarnings("unchecked")
     private <K,V,M extends Map<K,V>> M mergeMap(Class<?> destMapClass,Class<?> originMapClass,Consumer<M> watchConsumer,String... keys){
         return (M)constants.computeIfAbsent(keys[0],(v)->{
-            Map<K,V> map=null;
-            try{
-                map=(Map<K,V>)destMapClass.newInstance();
-                for(int i=0,l=keys.length;i<l;i++){
-                    String key=keys[i];
-                    try{
-                        Consumer<Map<K,V>> consumer=(Map<K,V> newMap)->{
-                            M mergedNewMap=mergeMap(destMapClass,originMapClass,watchConsumer,keys);
-                            if(watchConsumer!=null){
-                                watchConsumer.accept(mergedNewMap);
-                            }
-                        };
-                        map.putAll(Help.convert(getDataByCurator(key,(Class<Map<K,V>>)originMapClass,consumer,globalCurator),Collections.emptyMap()));
-                        map.putAll(Help.convert(getDataByCurator(key,(Class<Map<K,V>>)originMapClass,consumer,curator),Collections.emptyMap()));
-                    }catch(Exception e){
-                        throw new ConfigException(e); 
-                    }
-                }
-                return map;
-            }catch(InstantiationException | IllegalAccessException e1){
-                throw new ConfigException(e1);
-            }
+            return mergeMap0(destMapClass,originMapClass,watchConsumer,keys);
         });
     }
     /**
@@ -1254,6 +1272,31 @@ public class ConfigManager{
     public <V,C extends Collection<V>> C mergeCollection(Class<C> destCollectionClass,Class<C> originCollectionClass,String... keys){
         return mergeCollection(destCollectionClass,originCollectionClass,null,keys);
     }
+    private <V,C extends Collection<V>> C mergeCollection0(Class<?> destCollectionClass,Class<?> originCollectionClass,Consumer<C> watchConsumer,String... keys){
+        C collection;
+        try{
+            collection=(C)destCollectionClass.newInstance();
+            for(int i=0,l=keys.length;i<l;i++){
+                String key=keys[i];
+                try{
+                    Consumer<C> consumer=(c)->{
+                        C mergedNewCollection=mergeCollection0(destCollectionClass,originCollectionClass,watchConsumer,keys);
+                        if(watchConsumer!=null){
+                            watchConsumer.accept(mergedNewCollection);
+                        }
+                        constants.put(keys[0],mergedNewCollection);
+                    };
+                    collection.addAll(Help.convert(getDataByCurator(key,(Class<C>)originCollectionClass,consumer,globalCurator),Collections.emptyList()));
+                    collection.addAll(Help.convert(getDataByCurator(key,(Class<C>)originCollectionClass,consumer,curator),Collections.emptySet()));
+                }catch(Exception e){
+                    throw new ConfigException(e); 
+                }
+            }
+            return collection;
+        }catch(InstantiationException | IllegalAccessException e1){
+            throw new ConfigException(e1);
+        }
+    }
     /**
      * 合并指定keys的值，合并结果存在keys[0]，任意一个key的值变化了执行watchConsuemr，accept的参数是新的合并后的Collection
      * @param destCollectionClass   合并后的集合类型
@@ -1265,22 +1308,7 @@ public class ConfigManager{
     @SuppressWarnings("unchecked")
     public <V,C extends Collection<V>> C mergeCollection(Class<?> destCollectionClass,Class<?> originCollectionClass,Consumer<C> watchConsumer,String... keys){
         return (C)constants.computeIfAbsent(keys[0],(v)->{
-            C collection;
-            try{
-                collection=(C)destCollectionClass.newInstance();
-                for(int i=0,l=keys.length;i<l;i++){
-                    String key=keys[i];
-                    try{
-                        collection.addAll(Help.convert(getDataByCurator(key,(Class<C>)originCollectionClass,watchConsumer,globalCurator),Collections.emptyList()));
-                        collection.addAll(Help.convert(getDataByCurator(key,(Class<C>)originCollectionClass,watchConsumer,curator),Collections.emptySet()));
-                    }catch(Exception e){
-                        throw new ConfigException(e); 
-                    }
-                }
-                return collection;
-            }catch(InstantiationException | IllegalAccessException e1){
-                throw new ConfigException(e1);
-            }
+            return mergeCollection0(destCollectionClass,originCollectionClass,watchConsumer,keys);
         });
     }
     /**
@@ -1339,7 +1367,7 @@ public class ConfigManager{
     private <E> E getValue(String key,Class<E> cls,E defaultValue,Function<byte[],E> bytesFn,Function<String,E> stringFn,Consumer<E> consumer){
         Object value=constants.computeIfAbsent(key,(k)->{
             try{
-                return Help.convert(getDataByCurator(key,cls,consumer),defaultValue);
+                return Help.convert(getDataByCurator(key,bytesFn,consumer),defaultValue);
             }catch(Exception e){
                 throw new ConfigException(e);
             }

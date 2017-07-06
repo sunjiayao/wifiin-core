@@ -37,9 +37,11 @@ public class RedisSentinelPool extends Pool<ShardedJedis> {
     private int timeout;
     private GenericObjectPoolConfig poolConfig;
     private volatile List<JedisShardInfo> list;
+    private Set<JedisShardInfo> shards;
     
     public RedisSentinelPool(Set<String> sentinel, String password, int timeout, GenericObjectPoolConfig poolConfig) {
         list = initSentinel(sentinel, password);
+        populateShards();
         this.sentinel = sentinel;
         this.password = password;
         this.timeout = timeout;
@@ -150,9 +152,7 @@ public class RedisSentinelPool extends Pool<ShardedJedis> {
         int port = Integer.parseInt(getMasterAddrByNameResult.get(1));
         return new HostAndPort(host, port);
     }
-    
-    private void switchShardedPool(){
-        log.info("RedisSentinelPool.switchShardedPool:start");
+    private void populateShards(){
         Comparator<JedisShardInfo> comparator=(Comparator<JedisShardInfo>)(JedisShardInfo i1, JedisShardInfo i2)->{
             int r = i1.getHost().compareTo(i2.getHost());
             if(r==0){
@@ -160,8 +160,19 @@ public class RedisSentinelPool extends Pool<ShardedJedis> {
             }
             return r;
         };
-        Set<JedisShardInfo> shards=Sets.newTreeSet(comparator);
+        shards=Sets.newTreeSet(comparator);
         shards.addAll(list);
+    }
+    private void switchShardedPool(){
+        log.info("RedisSentinelPool.switchShardedPool:start");
+        if(list.size()==shards.size()){
+            int i=0,l=list.size();
+            for(;i<l && shards.contains(list.get(i));i++);
+            if(i>=l){
+                return;
+            }
+        }
+        populateShards();
         List<JedisShardInfo> list=this.list=Lists.newArrayList(shards);
         ShardedJedisPool old = this.shardedJedisPool;
         ShardedJedisPool newPool=null;

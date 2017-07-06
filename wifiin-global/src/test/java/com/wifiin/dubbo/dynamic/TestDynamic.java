@@ -11,6 +11,8 @@ public class TestDynamic{
     @Test
     public void testDynamicClient(){
         ApplicationContext ctx=new ClassPathXmlApplicationContext("classpath:/com/wifiin/dubbo/dynamic/dubbo-test-dynamic.xml ");
-        Assert.assertEquals("helloworld",DynamicDubboConsumerMaker.getInstance().get("helloworld",TestDynamicRPC.class,"testDynamic","1.0",false).helloworld());
+        String result=DynamicDubboConsumerMaker.getInstance().get("helloworld",TestDynamicRPC.class,"testDynamic","1.0",false).helloworld();
+        System.out.println("AAAAAAAAAAAAAAAA"+result);
+        Assert.assertEquals("helloworld",result);
     }
 }

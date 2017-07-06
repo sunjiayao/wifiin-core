@@ -22,7 +22,7 @@ public class ClassGetterMap{
     }
     @SuppressWarnings("unchecked")
     static <O,V> Getter<O,V> getGetter(Class<O> clazz,Field field){
-        Map<String,Getter<?,?>> propertyMap=GetSetUtil.getGetterPropertyMap(clazz);
+        Map<String,Getter> propertyMap=GetSetUtil.getGetterPropertyMap(clazz);
         return (Getter<O,V>)propertyMap.computeIfAbsent(field.getName(),(k)->{
             try{
                 return generateGetter(clazz,field);
@@ -37,7 +37,7 @@ public class ClassGetterMap{
     }
     @SuppressWarnings("unchecked")
     static <O,V> Getter<O,V> getGetter(Class<O> clazz,Method getter){
-        Map<String,Getter<?,?>> propertyMap=GetSetUtil.getGetterPropertyMap(clazz);
+        Map<String,Getter> propertyMap=GetSetUtil.getGetterPropertyMap(clazz);
         String propertyName=GetSetUtil.extractPropertyName(getter,true);
         return (Getter<O,V>)propertyMap.computeIfAbsent(propertyName,(k)->{
             try{
@@ -68,7 +68,7 @@ public class ClassGetterMap{
     }
     @SuppressWarnings("unchecked")
     static <O,V> Getter<O,V> getGetter(Class<O> clazz, String property){
-        Map<String,Getter<?,?>> propertyMap=GetSetUtil.getGetterPropertyMap(clazz);
+        Map<String,Getter> propertyMap=GetSetUtil.getGetterPropertyMap(clazz);
         return (Getter<O,V>)propertyMap.computeIfAbsent(property,(k)->{
             try{
                 return generateGetter(clazz,property);

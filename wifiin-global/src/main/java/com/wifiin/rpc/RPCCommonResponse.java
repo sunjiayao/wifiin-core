@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
+import com.wifiin.common.exception.BusinessException;
 import com.wifiin.rpc.exception.RPCResponseImmutableException;
 
 public class RPCCommonResponse implements RPCResponse,Serializable{
@@ -30,6 +31,9 @@ public class RPCCommonResponse implements RPCResponse,Serializable{
         public void setStatus(int status){
             throw new RPCResponseImmutableException("value of status in current instance must not be changed");
         }
+    }
+    public static RPCCommonResponse get(BusinessException ex){
+        return get(ex.getStatus());
     }
     private int status;
     protected RPCCommonResponse(){}

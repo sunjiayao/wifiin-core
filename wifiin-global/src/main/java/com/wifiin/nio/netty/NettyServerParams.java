@@ -3,7 +3,7 @@ package com.wifiin.nio.netty;
 import java.util.Collections;
 import java.util.Map;
 
-import org.apache.curator.shaded.com.google.common.collect.Maps;
+import com.google.common.collect.Maps;
 
 import com.wifiin.nio.OutputObject;
 import com.wifiin.nio.netty.channel.codec.AbstractCommonCodec;

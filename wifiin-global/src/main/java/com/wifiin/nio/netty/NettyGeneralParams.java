@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-import org.apache.curator.shaded.com.google.common.collect.Maps;
+import com.google.common.collect.Maps;
 
 import com.google.common.collect.Lists;
 import com.wifiin.nio.OutputObject;

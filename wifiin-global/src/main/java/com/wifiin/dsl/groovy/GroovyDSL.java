@@ -184,7 +184,7 @@ public class GroovyDSL{
         return this;
     }
     /**
-     * 返回dsl脚本的md5
+     * 返回dsl脚本的tag
      * @return
      */
     public String tag(){

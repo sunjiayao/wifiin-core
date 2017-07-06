@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.ProxySelector;
 import java.nio.charset.Charset;
+import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,8 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLContexts;
+import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
@@ -46,20 +49,18 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
-import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.wifiin.common.CommonConstant;
-import com.wifiin.common.GlobalObject;
 import com.wifiin.common.JSON;
 import com.wifiin.exception.JsonGenerationException;
 import com.wifiin.log.LoggerFactory;
 import com.wifiin.util.Help;
 import com.wifiin.util.ShutdownHookUtil;
+import com.wifiin.util.net.http.exception.HttpClientException;
 import com.wifiin.util.string.ThreadLocalStringBuilder;
 /**
  * http代替功能还没有测试。
@@ -83,22 +84,31 @@ public class HttpClient {
     private static final PoolingHttpClientConnectionManager POOLED_CONNECTION_MANAGER;
     private static final Map<String,CloseableHttpClient> HTTP_MAP=Maps.newConcurrentMap();
     static{
-        RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create(); 
-        SSLContext sslContext = SSLContexts.createDefault();
-//      SSLContext sslContext = SSLContexts.custom().useProtocol("https").loadTrustMaterial(trustStore, anyTrustStrategy).build();  
-        LayeredConnectionSocketFactory sslSF = new SSLConnectionSocketFactory(sslContext);  
-        registryBuilder.register("https", sslSF);  
-        ConnectionSocketFactory plainSF = new PlainConnectionSocketFactory();  
-        registryBuilder.register("http", plainSF); 
-        REGISTRY = registryBuilder.build();  
-        POOLED_CONNECTION_MANAGER = new PoolingHttpClientConnectionManager(REGISTRY);
-        ShutdownHookUtil.addHook(()->{
-            HTTP_MAP.values().forEach((http)->{
-                try{
-                    http.close();
-                }catch(IOException e){}
+        try{
+            RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create(); 
+//            SSLContext sslContext = SSLContexts.createDefault();
+            KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());  
+            //信任任何链接  
+            TrustStrategy anyTrustStrategy = (x509,s)->{  
+                return true;
+            };
+            SSLContext sslContext = SSLContexts.custom().useProtocol("https").useTLS().loadTrustMaterial(trustStore, anyTrustStrategy).build();  
+            LayeredConnectionSocketFactory sslSF = new SSLConnectionSocketFactory(sslContext, SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);  
+            registryBuilder.register("https", sslSF);  
+            ConnectionSocketFactory plainSF = new PlainConnectionSocketFactory();  
+            registryBuilder.register("http", plainSF); 
+            REGISTRY = registryBuilder.build();  
+            POOLED_CONNECTION_MANAGER = new PoolingHttpClientConnectionManager(REGISTRY);
+            ShutdownHookUtil.addHook(()->{
+                HTTP_MAP.values().forEach((http)->{
+                    try{
+                        http.close();
+                    }catch(IOException e){}
+                });
             });
-        });
+        }catch(Exception e){
+            throw new HttpClientException(e);
+        }
     }
     private String url;
     private String charset;
@@ -666,5 +676,8 @@ public class HttpClient {
     public static void removeAllProxy(){
         removeAllHttpProxy();
         removeAllHttpsProxy();
+    }
+    public static void main(String[] args) throws IOException{
+        System.out.println(new HttpClient("https://www.wifiin.cn").get());
     }
 }

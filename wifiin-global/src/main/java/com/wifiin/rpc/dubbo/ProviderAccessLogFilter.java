@@ -8,8 +8,7 @@ import com.alibaba.dubbo.rpc.Invoker;
 import com.alibaba.dubbo.rpc.Result;
 import com.alibaba.dubbo.rpc.RpcContext;
 import com.alibaba.dubbo.rpc.RpcException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.wifiin.common.GlobalObject;
+import com.wifiin.common.JSON;
 import com.wifiin.util.string.ThreadLocalStringBuilder;
 
 public class ProviderAccessLogFilter implements Filter{
@@ -31,14 +30,17 @@ public class ProviderAccessLogFilter implements Filter{
         Result result=null;
         long start=System.currentTimeMillis();
         try{
+            if(log.isDebugEnabled()){
+                log.debug("DubboProvider.start:"+JSON.toJSON(logContent));
+            }
             result=invoker.invoke(invocation);
             logContent.result=result.getValue();
             logContent.consumed=System.currentTimeMillis()-start;
-            log.info("DubboProvider:"+GlobalObject.getJsonMapper().writeValueAsString(logContent));
+            log.info("DubboProvider:"+JSON.toJSON(logContent));
         }catch(Exception e){
             try{
-                log.error("DubboProvider:"+GlobalObject.getJsonMapper().writeValueAsString(logContent),e);
-            }catch(JsonProcessingException e1){
+                log.error("DubboProvider:"+JSON.toJSON(logContent),e);
+            }catch(Exception e1){
                 e.addSuppressed(e1);
             }
             throw new RpcException(e);

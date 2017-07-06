@@ -10,14 +10,15 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
-
-import org.apache.curator.shaded.com.google.common.collect.Lists;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.wifiin.common.exception.JsonException;
+import com.wifiin.util.Help;
 
 public class JSON{
     private static final ObjectMapper mapper=GlobalObject.getJsonMapper();
@@ -28,6 +29,7 @@ public class JSON{
             throw new JsonException(e);
         }
     }
+    
     public static void toJSON(Object o,OutputStream out){
         try{
             mapper.writeValue(out,o);
@@ -61,6 +63,24 @@ public class JSON{
             throw new JsonException(e);
         }
     }
+    public static <T> T parse(String json){
+        if(Help.isEmpty(json)){
+            throw new JsonException("param is empty, "+json);
+        }else if(json.startsWith("[") && json.endsWith("]")){
+            return (T)parse(json,List.class);
+        }else if(json.startsWith("{") && json.endsWith("}")){
+            return (T)parse(json,Map.class);
+        }else{
+            throw new JsonException("param is not a json, "+json);
+        }
+    }
+    public static <T> T parseOrReturnParamIfNotJson(String json){
+        try{
+            return parse(json);
+        }catch(JsonException e){
+            return (T)json;
+        }
+    }
     public static <T> T parse(String json,Class<T> t){
         try{
             return mapper.readValue(json,t);
@@ -90,6 +110,9 @@ public class JSON{
         }catch(IOException e){
             throw new JsonException(e);
         }
+    }
+    public static <T> List<T> parseList(String json,Class<T> t){
+        return parse(json,List.class,t);
     }
     public static <T> List<T> parseList(BufferedReader reader,Class<T> t){
         String line=null;

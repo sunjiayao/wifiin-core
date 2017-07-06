@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.wifiin.util.Help;
 import com.wifiin.util.string.ThreadLocalStringBuilder;
 
 import javassist.CannotCompileException;
@@ -25,8 +26,8 @@ public class GetSetUtil{
     private static final Map<Method,String> METHOD_PROPERTY_NAME_MAP=Maps.newConcurrentMap();
     private static final String GETTER_PACKAGE_NAME=(ClassGetterMap.class.getPackage().getName()+".getters").intern();
     private static final String SETTER_PACKAGE_NAME=(ClassSetterMap.class.getPackage().getName()+".setters").intern();
-    private static final Map<Class<?>,Map<String,Getter<?,?>>> CLASS_GETTER_MAP=Maps.newConcurrentMap(); 
-    private static final Map<Class<?>,Map<String,Setter<?,?>>> CLASS_SETTER_MAP=Maps.newConcurrentMap();
+    private static final Map<Class<?>,Map<String,Getter>> CLASS_GETTER_MAP=Maps.newConcurrentMap(); 
+    private static final Map<Class<?>,Map<String,Setter>> CLASS_SETTER_MAP=Maps.newConcurrentMap();
     private static final Map<Class,Class> PRIMITIVE_WRAPPER_MAP=ImmutableMap.<Class,Class>builder()
             .put(int.class,Integer.class)
             .put(long.class,Long.class)
@@ -153,12 +154,12 @@ public class GetSetUtil{
         }
         return setterBuilder.toString();
     }
-    static <O> Map<String,Getter<?,?>> getGetterPropertyMap(Class<O> clazz){
+    static <O> Map<String,Getter> getGetterPropertyMap(Class<O> clazz){
         return CLASS_GETTER_MAP.computeIfAbsent(clazz,(k)->{
             return Maps.newConcurrentMap();
         });
     }
-    static <O> Map<String,Setter<?,?>> getSetterPropertyMap(Class<O> clazz){
+    static <O> Map<String,Setter> getSetterPropertyMap(Class<O> clazz){
         return CLASS_SETTER_MAP.computeIfAbsent(clazz,(k)->{
             return Maps.newConcurrentMap();
         });
@@ -174,8 +175,8 @@ public class GetSetUtil{
             return pname;
         });
     }
-    public static <O> Map<String, Getter<?, ?>> getGetters(Class<O> clazz){
-        Map<String, Getter<?, ?>> getters=CLASS_GETTER_MAP.get(clazz);
+    public static <O> Map<String, Getter> getGetters(Class<O> clazz){
+        Map<String, Getter> getters=CLASS_GETTER_MAP.get(clazz);
         if(getters==null){
             synchronized(clazz){
                 getters=CLASS_GETTER_MAP.get(clazz);
@@ -191,7 +192,7 @@ public class GetSetUtil{
                     if(methods!=null){
                         for(int i=0,l=methods.length;i<l;i++){
                             Method method=methods[i];
-                            if(method.getName().startsWith("get")){
+                            if(method.getName().startsWith("get") && Help.isEmpty(method.getParameters())){
                                 ClassGetterMap.getGetter(clazz,method);
                             }
                         }
@@ -204,8 +205,8 @@ public class GetSetUtil{
         }
         return getters;
     }
-    public static <O> Map<String, Setter<?, ?>> getSetters(Class<O> clazz){
-        Map<String,Setter<?,?>> setters=CLASS_SETTER_MAP.get(clazz);
+    public static <O> Map<String, Setter> getSetters(Class<O> clazz){
+        Map<String,Setter> setters=CLASS_SETTER_MAP.get(clazz);
         if(setters==null){
             synchronized(clazz){
                 setters=CLASS_SETTER_MAP.get(clazz);
@@ -221,7 +222,7 @@ public class GetSetUtil{
                     if(methods!=null){
                         for(int i=0,l=methods.length;i<l;i++){
                             Method method=methods[i];
-                            if(method.getName().startsWith("set")){
+                            if(method.getName().startsWith("set") && method.getParameters().length==1){
                                 ClassSetterMap.getSetter(clazz,method);
                             }
                         }

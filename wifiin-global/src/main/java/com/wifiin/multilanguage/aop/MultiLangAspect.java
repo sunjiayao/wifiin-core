@@ -22,6 +22,7 @@ import com.wifiin.multilanguage.rpc.model.vo.MultiLangData;
 import com.wifiin.multilanguage.rpc.model.vo.MultiLangResponse;
 import com.wifiin.redis.RedisConnection;
 import com.wifiin.reflect.BeanUtil;
+import com.wifiin.rpc.dubbo.DynamicDubboConsumerMaker;
 import com.wifiin.util.Help;
 
 @Component
@@ -36,9 +37,8 @@ public class MultiLangAspect{
     public RedisConnection redis(){
         return null;
     }
-    @Lookup
     public MultiLangRPC multiLangRPC(){
-        return null;
+        return DynamicDubboConsumerMaker.getInstance().get(MultiLangRPC.class);
     }
     
     @Around(value="@annotation(com.wifiin.multilanguage.aop.MultiLangMethod) && @annotation(multilang)",argNames="multilang")
@@ -65,7 +65,7 @@ public class MultiLangAspect{
                 m.putAll(l);
             }
         }else{
-            BeanUtil.populate(queryLang(app,multiLangKey,lang,BeanUtil.get(result,ID,false)),result,false,false);
+            BeanUtil.populate(queryLang(app,multiLangKey,lang,BeanUtil.get(result,ID,false)),result,false,false,true);
         }
     }
     private Map<String,Object> queryLang(String app,String key,String lang,Object id){

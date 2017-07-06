@@ -2,7 +2,11 @@ package com.wifiin.datasource;
 
 import java.io.Serializable;
 
+import org.slf4j.Logger;
+
+import com.wifiin.common.JSON;
 import com.wifiin.config.ConfigManager;
+import com.wifiin.log.LoggerFactory;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 /**
@@ -17,6 +21,7 @@ import com.zaxxer.hikari.HikariDataSource;
  * @author Running
  */
 public class ConfigManagedDataSource extends HikariDataSource{
+    private static final Logger log=LoggerFactory.getLogger(ConfigManagedDataSource.class);
     /**
      * ConfigManager用这个key得到DataSource配置数据
      */
@@ -32,7 +37,12 @@ public class ConfigManagedDataSource extends HikariDataSource{
         this(DATASOURCE_CONFIG);
     }
     public ConfigManagedDataSource(String key){
-        super(ConfigManager.getInstance().getObject(key,SerializableHikariConfig.class,new SerializableHikariConfig()));
+        super(config(key));
+    }
+    private static HikariConfig config(String key){
+        HikariConfig config=ConfigManager.getInstance().getObject(key,SerializableHikariConfig.class,new SerializableHikariConfig());
+        log.info("DatasourceConfig:"+JSON.toJSON(config));
+        return config;
     }
     /**
      * watch触发后，自动重新watch

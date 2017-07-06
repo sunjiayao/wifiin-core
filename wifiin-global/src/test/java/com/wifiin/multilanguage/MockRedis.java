@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.springframework.stereotype.Component;
 
@@ -1343,6 +1344,24 @@ public class MockRedis implements RedisConnection{
     public long zincrByCompare(String key,String name,long incr,long val){
         // TODO Auto-generated method stub
         return 0;
+    }
+
+    @Override
+    public <E> E getObjectFromJsonOrSupplier(String key,Class<E> cls,Supplier<E> supplier){
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public <E> E getObjectFromJsonOrSupplier(String key,Class<E> cls,Supplier<E> supplier,int expire){
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public <E> E getObjectFromJsonOrSupplier(String key,Class<E> cls,Supplier<E> supplier,long expireAt){
+        // TODO Auto-generated method stub
+        return null;
     }
     
 }

@@ -1,14 +1,10 @@
 package com.wifiin.nio.netty.channel.codec;
 
-import java.util.Map;
 import java.util.function.Consumer;
-
-import org.apache.curator.shaded.com.google.common.collect.Maps;
 
 import com.wifiin.nio.OutputObject;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.Signal;

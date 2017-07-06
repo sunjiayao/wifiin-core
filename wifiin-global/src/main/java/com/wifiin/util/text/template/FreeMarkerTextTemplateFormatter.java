@@ -3,6 +3,7 @@ package com.wifiin.util.text.template;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 
+import com.wifiin.util.bytes.ThreadLocalByteArray;
 import com.wifiin.util.digest.MessageDigestUtil;
 import com.wifiin.util.io.ThreadLocalByteArrayOutputStream;
 import com.wifiin.util.text.template.exception.TextTemplateFormatterException;

@@ -74,7 +74,7 @@ public class HeapCache<K,V>{
         cache=builder.build();
     }
     @SuppressWarnings("unchecked")
-    public <T> T get(String key){
+    public <T> T get(K key){
         return (T)cache.getIfPresent(key);
     }
     /**
@@ -97,16 +97,16 @@ public class HeapCache<K,V>{
     public V putIfAbsent(K key,V value){
         return cache.asMap().putIfAbsent(key,value);
     }
-    public void remove(String key){
+    public void remove(K key){
         cache.invalidate(key);
     }
-    public void remove(String... keys){
+    public void remove(K... keys){
         remove(Arrays.stream(keys));
     }
-    public void remove(Collection<String> keys){
+    public void remove(Collection<K> keys){
         remove(keys.stream());
     }
-    private void remove(Stream<String> stream){
+    private void remove(Stream<K> stream){
         stream.forEach((k)->{
             remove(k);
         });

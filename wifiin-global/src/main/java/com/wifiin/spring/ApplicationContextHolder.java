@@ -6,13 +6,9 @@ import java.util.Map;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import com.wifiin.spring.exception.TooManyApplicationContextHolderException;
 
-@Component
-@Scope("singleton")
 public class ApplicationContextHolder implements ApplicationContextAware{
     private static ApplicationContextHolder holder;
     private ApplicationContext appctx;
@@ -61,5 +57,7 @@ public class ApplicationContextHolder implements ApplicationContextAware{
     public String[] getBeanNamesWithAnnotation(Class<? extends Annotation> c){
         return appctx.getBeanNamesForAnnotation(c);
     }
-    
+    public ApplicationContext getApplicationContext(){
+        return appctx;
+    }
 }

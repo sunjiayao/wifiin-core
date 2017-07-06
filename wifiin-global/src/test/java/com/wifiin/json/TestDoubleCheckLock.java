@@ -2,7 +2,7 @@ package com.wifiin.json;
 
 import java.util.Map;
 
-import org.apache.curator.shaded.com.google.common.collect.Maps;
+import com.google.common.collect.Maps;
 
 public class TestDoubleCheckLock{
     private volatile static Map map;

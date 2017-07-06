@@ -1,6 +1,5 @@
 package com.wifiin.redis;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -13,14 +12,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wifiin.common.GlobalObject;
+import com.wifiin.common.JSON;
 import com.wifiin.exception.JsonGenerationException;
-import com.wifiin.exception.JsonParseException;
 import com.wifiin.exception.RedisException;
 import com.wifiin.reflect.BeanUtil;
 import com.wifiin.util.Help;
@@ -705,13 +705,9 @@ public class JedisConnection implements RedisConnection{
 		return execute(JedisMethodHandles.type,key);
 	}
 
-//	@Override
-//	public Long zadd(String key, Map<String, Double> scoreMembers) {
-//		return execute(JedisMethodHandles.zaddMULTI,key);
-//	}
 	@Override
 	public Long zadd(String key, Map<String, Double> members) {
-		return execute(JedisMethodHandles.zaddMULTI,key);
+		return execute(JedisMethodHandles.zaddMULTI,key,members);
 	}
 	@Override
 	public Long zadd(String key, double score, String member) {
@@ -1101,8 +1097,8 @@ public class JedisConnection implements RedisConnection{
 
 	@Override
 	public String zindex(String key, long index) {
-		Set<String> s=zrange(key,index,index);
-		return s!=null?null:s.iterator().next();
+		Set<String> s=zrange(key,index,index+1);
+		return Help.isEmpty(s)?null:s.iterator().next();
 	}
 
 	@Override
@@ -1150,45 +1146,62 @@ public class JedisConnection implements RedisConnection{
 		if(Help.isEmpty(value)){
 			return null;
 		}
-		try{
-            return value==null?null:GlobalObject.getJsonMapper().readValue(value, cls);
-        }catch(IOException e){
-            throw new JsonParseException(e);
-        }
+        return value==null?null:JSON.parse(value, cls);
 	}
+	public <E> E getObjectFromJsonOrSupplier(String key,Class<E> cls,Supplier<E> supplier){
+	    return getObjectFromJson(key,cls,supplier,(e)->{
+	        this.setJsonFromObject(key,e);
+        });
+	}
+	public <E> E getObjectFromJsonOrSupplier(String key,Class<E> cls,Supplier<E> supplier,int expire){
+        return getObjectFromJson(key,cls,supplier,(e)->{
+            this.setJsonFromObjectExpire(key,e,expire);
+        });
+	}
+    public <E> E getObjectFromJsonOrSupplier(String key,Class<E> cls,Supplier<E> supplier,long expireAt){
+        return getObjectFromJson(key,cls,supplier,(e)->{
+            this.setJsonFromObjectExpireAt(key,e,expireAt);
+        });
+    }
+    private <E> E getObjectFromJson(String key,Class<E> cls,Supplier<E> supplier,Consumer<E> setter){
+        E e=this.getObjectFromJson(key,cls);
+        if(e==null){
+            e=supplier.get();
+            if(e!=null){
+                setter.accept(e);
+            }
+        }
+        return e;
+    }
 	private enum SetJsonFromObject{
 	    NO_EXPIRE {
             @Override
-            public String set(RedisConnection redis,String key,Object value,long expire) throws JsonProcessingException{
-                return redis.set(key,GlobalObject.getJsonMapper().writeValueAsString(value));
+            public String set(RedisConnection redis,String key,Object value,long expire) {
+                return redis.set(key,JSON.toJSON(value));
             }
         },
 	    EXPIRE {
             @Override
-            public String set(RedisConnection redis,String key,Object value,long expire) throws JsonProcessingException{
-                return redis.setex(key,(int)expire,GlobalObject.getJsonMapper().writeValueAsString(value));
+            public String set(RedisConnection redis,String key,Object value,long expire) {
+                return redis.setex(key,(int)expire,JSON.toJSON(value));
             }
         },
 	    EXPIRE_AT {
             @Override
-            public String set(RedisConnection redis,String key,Object value,long expire) throws JsonProcessingException{
-                String result = redis.set(key,GlobalObject.getJsonMapper().writeValueAsString(value));
+            public String set(RedisConnection redis,String key,Object value,long expire) {
+                String result = redis.set(key,JSON.toJSON(value));
                 redis.expireAt(key,expire);
                 return result;
             }
         };
-	    public abstract String set(RedisConnection redis,String key,Object value,long expire)throws JsonProcessingException;
+	    public abstract String set(RedisConnection redis,String key,Object value,long expire);
 	}
 	private String setJsonFromObject(String key,Object value,SetJsonFromObject action,long expire){
 	    if(value==null){
             String nullString=null;
             return set(key,nullString);
         }else{
-            try{
-                return action.set(this,key,value,expire);
-            }catch(JsonProcessingException e){
-                throw new JsonGenerationException(e);
-            }
+            return action.set(this,key,value,expire);
         }
 	}
 	@Override

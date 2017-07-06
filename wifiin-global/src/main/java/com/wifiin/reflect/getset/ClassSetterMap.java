@@ -35,7 +35,7 @@ public class ClassSetterMap{
         if(Help.isFinalOrStaticField(field)){
             return null;
         }
-        Map<String,Setter<?,?>> propertyMap=GetSetUtil.getSetterPropertyMap(clazz);
+        Map<String,Setter> propertyMap=GetSetUtil.getSetterPropertyMap(clazz);
         return (Setter<O,V>)propertyMap.computeIfAbsent(field.getName(),(k)->{
             try{
                 return generateSetter(clazz,field);
@@ -55,7 +55,7 @@ public class ClassSetterMap{
     
     @SuppressWarnings("unchecked")
     static <O,V> Setter<O,V> getSetter(Class<O> clazz,Method setter){
-        Map<String,Setter<?,?>> propertyMap=GetSetUtil.getSetterPropertyMap(clazz);
+        Map<String,Setter> propertyMap=GetSetUtil.getSetterPropertyMap(clazz);
         String propertyName=GetSetUtil.extractPropertyName(setter,false);
         return (Setter<O,V>)propertyMap.computeIfAbsent(propertyName,(k)->{
             try{
@@ -97,7 +97,7 @@ public class ClassSetterMap{
     
     @SuppressWarnings("unchecked")
     static <O,V> Setter<O,V> getSetter(Class<O> clazz,String property){
-        Map<String,Setter<?,?>> propertyMap=GetSetUtil.getSetterPropertyMap(clazz);
+        Map<String,Setter> propertyMap=GetSetUtil.getSetterPropertyMap(clazz);
         return (Setter<O,V>)propertyMap.computeIfAbsent(property,(k)->{
             try{
                 return generateSetter(clazz,property);

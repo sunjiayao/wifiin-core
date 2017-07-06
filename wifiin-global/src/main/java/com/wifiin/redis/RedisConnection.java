@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.ShardedJedis;
@@ -72,6 +73,9 @@ public interface RedisConnection extends JedisCommands{
 	public Map<String,Object> getJsonMap(String key);
 	public Map<String,Object> getJsonMap(String key, String... fields);
 	public <E> E getObjectFromJson(String key, Class<E> cls);
+	public <E> E getObjectFromJsonOrSupplier(String key,Class<E> cls,Supplier<E> supplier);
+	public <E> E getObjectFromJsonOrSupplier(String key,Class<E> cls,Supplier<E> supplier,int expire);
+	public <E> E getObjectFromJsonOrSupplier(String key,Class<E> cls,Supplier<E> supplier,long expireAt);
 	public String setJsonFromObject(String key, Object value);
 	public String setJsonFromObjectExpire(String key,Object value,int expire);
 	public String setJsonFromObjectExpireAt(String key,Object value,long expireAt);

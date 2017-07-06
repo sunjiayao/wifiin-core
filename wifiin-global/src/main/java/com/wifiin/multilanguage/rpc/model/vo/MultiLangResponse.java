@@ -1,11 +1,13 @@
 package com.wifiin.multilanguage.rpc.model.vo;
 
-import java.io.IOException;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.Map;
 
-import com.wifiin.common.GlobalObject;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.wifiin.common.JSON;
 import com.wifiin.multilanguage.aop.exception.LanguageQueryException;
+import com.wifiin.util.Help;
 
 public class MultiLangResponse implements Serializable{
     /**
@@ -24,14 +26,22 @@ public class MultiLangResponse implements Serializable{
     public String getValue(){
         return value;
     }
+    @JsonIgnore
     @SuppressWarnings("unchecked")
     public Map<String,String> getFieldValues(){
-        return getFieldValues(Map.class);
+        Map map = getFieldValues(Map.class);
+        if(map==null){
+            return Collections.EMPTY_MAP;
+        }
+        return map;
     }
     public <T> T getFieldValues(Class<T> modleClass){
+        if(Help.isEmpty(value)){
+            return null;
+        }
         try{
-            return GlobalObject.getJsonMapper().readValue(value,modleClass);
-        }catch(IOException e){
+            return JSON.parse(value,modleClass);
+        }catch(Exception e){
             throw new LanguageQueryException(e);
         }
     }

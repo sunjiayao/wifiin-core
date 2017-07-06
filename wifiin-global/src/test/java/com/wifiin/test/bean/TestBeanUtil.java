@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Maps;
-import com.wifiin.common.GlobalObject;
+import com.wifiin.common.JSON;
 import com.wifiin.reflect.BeanUtil;
 
 
@@ -110,7 +110,7 @@ public class TestBeanUtil{
         m.put("i","1123");
         m.put("l","1234241");
         m.put("b","true");
-        System.out.println(GlobalObject.getJsonMapper().writeValueAsString(BeanUtil.populate(m,com.wifiin.test.bean.Test.class,false,false)));
+        System.out.println(JSON.toJSON(BeanUtil.populate(m,com.wifiin.test.bean.Test.class,false,false,true)));
     }
     @Test
     public void test(){
@@ -119,6 +119,14 @@ public class TestBeanUtil{
         m.put("orderId","1K14879603WKLAGQ24");
         m.put("bytes",100);
         m.put("incrementalBytes",10);
-        BeanUtil.populateFromMap(m,IneFlowOrder.class,false,false);
+        BeanUtil.populateFromMap(m,IneFlowOrder.class,false,false,true);
+    }
+    public static class Empty{
+        
+    }
+    @Test
+    public void testClassProp(){
+        Empty empty=new Empty();
+        Assert.assertEquals(false,BeanUtil.populateToMap(empty,false).containsKey("class"));
     }
 }
