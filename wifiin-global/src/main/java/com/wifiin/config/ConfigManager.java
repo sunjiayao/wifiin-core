@@ -28,12 +28,12 @@ import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.wifiin.common.CommonConstant;
 import com.wifiin.common.GlobalObject;
+import com.wifiin.common.JSON;
 import com.wifiin.exception.ConfigException;
 import com.wifiin.util.Help;
 import com.wifiin.util.ShutdownHookUtil;
@@ -145,8 +145,8 @@ public class ConfigManager{
      * @param key 要监听的key
      * @param curator 监听的客户端
      */
-    private void watch(CuratorFramework curator,String key){
-        watch(curator,key,null);
+    private byte[] watch(CuratorFramework curator,String key){
+        return watch(curator,key,null);
     }
     /**
      * 监听zookeepeer
@@ -154,9 +154,9 @@ public class ConfigManager{
      * @param key 要监听的key
      * @param runnable key的值发生变化时要执行的任务，可以传null
      */
-    private void watch(CuratorFramework curator,String key,Consumer<String> watchConsumer){
+    private byte[] watch(CuratorFramework curator,String key,Consumer<String> watchConsumer){
         try{
-            curator.getData().watched().inBackground((client,event)->{
+            return curator.getData().watched().inBackground((client,event)->{
                 constants.remove(key);
                 if(watchConsumer!=null){
                     watchConsumer.accept(key);
@@ -165,6 +165,7 @@ public class ConfigManager{
         }catch(Exception e){
             log.error("ConfigManager.watch:",e);
         }
+        return null;
     }
     /**
      * 监听zookeeper
@@ -205,7 +206,9 @@ public class ConfigManager{
      * @param value
      */
     public void setDataOrCreateInJson(String key,Object value){
-        setDataOrCreateInJson(key,value,curator);
+        this.setDataOrCreate(key,value,curator,(v)->{
+            return JSON.toJSONBytes(v);
+        });
     }
     /**
      * 用json格式储存全局配置数据，只能用getDataFromJson(String, Class)获取
@@ -213,22 +216,7 @@ public class ConfigManager{
      * @param value
      */
     public void setDataOrCreateInJsonToGlobal(String key,Object value) {
-        setDataOrCreateInJson(key,value,globalCurator);
-    }
-    /**
-     * 向指定curator填充指定key-value
-     * @param key
-     * @param value
-     * @param curator
-     */
-    private void setDataOrCreateInJson(String key,Object value,CuratorFramework curator){
-        setDataOrCreate(key,value,curator,(v)->{
-            try{
-                return GlobalObject.getJsonMapper().writeValueAsBytes(v);
-            }catch(JsonProcessingException e){
-                throw new ConfigException(e);
-            }
-        });
+        setStringDataOrCreateToGlobal(key,JSON.toJSON(value));
     }
     /**
      * 得到格式是json的数据，只能获取setDataOrCreateJson*(String,Object)保存的数据
@@ -237,27 +225,9 @@ public class ConfigManager{
      * @return
      */
     public <E> E getDataFromJson(String key,Class<E> cls) {
-        E r=getDataFromJson(key,cls,curator);
-        if(Help.isEmpty(r)){
-            r=getDataFromJson(key,cls,globalCurator);
-        }
-        return r;
-    }
-    /**
-     * 从指定curator得到指定key的数据，数据是json格式转换为cls的对象
-     * @param key
-     * @param cls
-     * @param curator
-     * @return
-     */
-    private <E> E getDataFromJson(String key,Class<E> cls,CuratorFramework curator) {
-        return getDataByCurator(key,(data)->{
-            try{
-                return GlobalObject.getJsonMapper().readValue(data,cls);
-            }catch(IOException e){
-                throw new ConfigException(e);
-            }
-        },curator);
+        return this.getDataByCurator(key,(bytes)->{
+            return JSON.parse(bytes,cls);
+        },null);
     }
     /**
      * 将value保存到zookeeper，键是key，如果key不存在就创建一个，如果已存在就覆盖已存在的值。写入的结果不包含类信息。
@@ -357,16 +327,6 @@ public class ConfigManager{
         },watchConsumer,curator);
     }
     /**
-     * 从指定curator对象获取数据，用指定的dataConverter将得到的数据转化为要返回的对象
-     * @param key
-     * @param dataConverter
-     * @param curator
-     * @return
-     */
-    private <E> E getDataByCurator(String key,Function<byte[],E> dataConverter,CuratorFramework curator){
-        return getDataByCurator(key,dataConverter,null,curator);
-    }
-    /**
      * 从指定curator获取数据，用指定dataConverter将得到的数据转化为要返回的对象，并监听指定key的变化，key发生变化了执行consumer
      * @param key
      * @param dataConverter
@@ -394,7 +354,8 @@ public class ConfigManager{
             }catch(Exception e){
                 throw new ConfigException(e);
             }
-        }else{
+        }
+        if(data==null){
             return null;
         }
         return dataConverter.apply(data);

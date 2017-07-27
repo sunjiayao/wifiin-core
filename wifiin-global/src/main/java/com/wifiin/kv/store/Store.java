@@ -40,19 +40,21 @@ public interface Store{
     /**
      * 遍历每一个key前缀是prefix的键值对。前闭后闭区间
      * @param min 包含
-     * @param max 包含
+     * @param max 由includeMax决定是否包含
      * @param fn 针对遍历的每一个键值对执行的逻辑
+     * @param includeMax 是否包含max
      * @param continueOnThrown 如果从fn抛出异常是否继续
      */
-    public void iterate(byte[] min,byte[] max,BiFunction<byte[],byte[],Boolean> fn,boolean continueOnThrown);
+    public void iterate(byte[] min,byte[] max,BiFunction<byte[],byte[],Boolean> fn,boolean includeMax,boolean continueOnThrown);
     /**
      * 遍历每一个key前缀是prefix的键值对。前闭后闭区间
      * @param min 
      * @param max 
      * @param fn
+     * @param includeMin
      * @param continueOnThrown 如果从fn抛出异常是否继续
      */
-    public void reserveIterate(byte[] min,byte[] max,BiFunction<byte[],byte[],Boolean> fn,boolean continueOnThrown);
+    public void reserveIterate(byte[] min,byte[] max,BiFunction<byte[],byte[],Boolean> fn,boolean includeMin,boolean continueOnThrown);
     /**
      * 返回一个迭代器
      * @param target 

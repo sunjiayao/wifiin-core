@@ -59,7 +59,9 @@ public abstract class AbstractCommonCodec<I,O extends OutputObject> extends Simp
      * @param i 接收到的对端数据
      * @param consumer 封装了execute(I)和encode(O,ByteBuf)的对象，本参数的参数就是i
      */
-    protected abstract void executor(I i,Consumer<I> consumer);
+    protected void executor(I i,Consumer<I> consumer){
+        consumer.accept(i);
+    }
     /**
      * 业务逻辑在这里
      * @param i 解析得到的报文对象
@@ -76,6 +78,7 @@ public abstract class AbstractCommonCodec<I,O extends OutputObject> extends Simp
     @Override
     protected final void channelRead0(ChannelHandlerContext ctx,ByteBuf msg) throws Exception{
         buf.setCumulation(msg);
+        ThreadLocalChannelHandlerContext.set(ctx);
         I i=decode();
         executor(i,(param)->{
             execute(ctx,param);

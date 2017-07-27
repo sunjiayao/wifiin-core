@@ -1,5 +1,5 @@
 package com.wifiin.kv.command;
 
-public enum ListCommand{
+public enum ListCommand {
     
 }

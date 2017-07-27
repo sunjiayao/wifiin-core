@@ -1,8 +1,13 @@
 package com.wifiin.log;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 
+import com.google.common.collect.Lists;
 import com.wifiin.util.text.template.TextTemplateFormatterType;
 
 public class LoggerFactory{
@@ -14,7 +19,16 @@ public class LoggerFactory{
     }
     private static Logger getLogger(Logger logger){
         return new Logger(){
-
+            
+            private String format(String message,Object o){
+                if(o instanceof Collection && !(o instanceof List)){
+                    List list=Lists.newArrayList();
+                    list.addAll((Collection)o);
+                    o=list;
+                }
+                return TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o instanceof List || o.getClass().isArray() ? o : new Object[]{o});
+            }
+            
             @Override
             public void debug(String message){
                 logger.debug(message);
@@ -22,12 +36,12 @@ public class LoggerFactory{
 
             @Override
             public void debug(String message,Object o){
-                logger.debug(TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o));
+                logger.debug(format(message,o));
             }
 
             @Override
             public void debug(String message,Object... o){
-                logger.debug(TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o));
+                logger.debug(format(message,o));
             }
 
             @Override
@@ -42,7 +56,7 @@ public class LoggerFactory{
 
             @Override
             public void debug(String message,Object o1,Object o2){
-                logger.debug(TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(new Object[]{o1,o2}));
+                logger.debug(format(message,new Object[]{o1,o2}));
             }
 
             @Override
@@ -52,7 +66,7 @@ public class LoggerFactory{
 
             @Override
             public void debug(Marker marker,String message,Object... o){
-                logger.debug(marker,TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o));
+                logger.debug(marker,format(message,o));
             }
 
             @Override
@@ -62,7 +76,7 @@ public class LoggerFactory{
 
             @Override
             public void debug(Marker marker,String message,Object o1,Object o2){
-                logger.debug(marker,TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(new Object[]{o1,o2}));
+                logger.debug(marker,format(message,new Object[]{o1,o2}));
             }
 
             @Override
@@ -72,12 +86,12 @@ public class LoggerFactory{
 
             @Override
             public void error(String message,Object o){
-                logger.error(TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o));
+                logger.error(format(message,o));
             }
 
             @Override
             public void error(String message,Object... o){
-                logger.error(TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o));
+                logger.error(format(message,o));
             }
 
             @Override
@@ -92,7 +106,7 @@ public class LoggerFactory{
 
             @Override
             public void error(String message,Object o1,Object o2){
-                logger.error(TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(new Object[]{o1,o2}));
+                logger.error(format(message,new Object[]{o1,o2}));
             }
 
             @Override
@@ -102,7 +116,7 @@ public class LoggerFactory{
 
             @Override
             public void error(Marker marker,String message,Object... o){
-                logger.error(marker,TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o));
+                logger.error(marker,format(message,o));
             }
 
             @Override
@@ -112,7 +126,7 @@ public class LoggerFactory{
 
             @Override
             public void error(Marker marker,String message,Object o1,Object o2){
-                logger.error(marker,TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(new Object[]{o1,o2}));
+                logger.error(marker,format(message,new Object[]{o1,o2}));
             }
             
             @Override
@@ -127,12 +141,12 @@ public class LoggerFactory{
 
             @Override
             public void info(String message,Object o){
-                logger.info(TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o));
+                logger.info(format(message,o));
             }
 
             @Override
             public void info(String message,Object... o){
-                logger.info(TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o));
+                logger.info(format(message,o));
             }
 
             @Override
@@ -147,7 +161,7 @@ public class LoggerFactory{
 
             @Override
             public void info(String message,Object o1,Object o2){
-                logger.info(TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(new Object[]{o1,o2}));
+                logger.info(format(message,new Object[]{o1,o2}));
             }
 
             @Override
@@ -157,7 +171,7 @@ public class LoggerFactory{
 
             @Override
             public void info(Marker marker,String message,Object... o){
-                logger.info(marker,TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o));
+                logger.info(marker,format(message,o));
             }
 
             @Override
@@ -167,7 +181,7 @@ public class LoggerFactory{
 
             @Override
             public void info(Marker marker,String message,Object o1,Object o2){
-                logger.info(marker,TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(new Object[]{o1,o2}));
+                logger.info(marker,format(message,new Object[]{o1,o2}));
             }
             
             @Override
@@ -227,12 +241,12 @@ public class LoggerFactory{
 
             @Override
             public void trace(String message,Object o){
-                logger.trace(TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o));
+                logger.trace(format(message,o));
             }
 
             @Override
             public void trace(String message,Object... o){
-                logger.trace(TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o));
+                logger.trace(format(message,o));
             }
 
             @Override
@@ -247,7 +261,7 @@ public class LoggerFactory{
 
             @Override
             public void trace(String message,Object o1,Object o2){
-                logger.trace(TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(new Object[]{o1,o2}));
+                logger.trace(format(message,new Object[]{o1,o2}));
             }
 
             @Override
@@ -257,7 +271,7 @@ public class LoggerFactory{
 
             @Override
             public void trace(Marker marker,String message,Object... o){
-                logger.trace(marker,TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o));
+                logger.trace(marker,format(message,o));
             }
 
             @Override
@@ -267,7 +281,7 @@ public class LoggerFactory{
 
             @Override
             public void trace(Marker marker,String message,Object o1,Object o2){
-                logger.trace(marker,TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(new Object[]{o1,o2}));
+                logger.trace(marker,format(message,new Object[]{o1,o2}));
             }
 
             @Override
@@ -277,12 +291,12 @@ public class LoggerFactory{
 
             @Override
             public void warn(String message,Object o){
-                logger.warn(TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o));
+                logger.warn(format(message,o));
             }
 
             @Override
             public void warn(String message,Object... o){
-                logger.warn(TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o));
+                logger.warn(format(message,o));
             }
 
             @Override
@@ -297,7 +311,7 @@ public class LoggerFactory{
 
             @Override
             public void warn(String message,Object o1,Object o2){
-                logger.warn(TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(new Object[]{o1,o2}));
+                logger.warn(format(message,new Object[]{o1,o2}));
             }
 
             @Override
@@ -307,7 +321,7 @@ public class LoggerFactory{
 
             @Override
             public void warn(Marker marker,String message,Object... o){
-                logger.warn(marker,TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o));
+                logger.warn(marker,format(message,o));
             }
 
             @Override
@@ -317,7 +331,7 @@ public class LoggerFactory{
 
             @Override
             public void warn(Marker marker,String message,Object o1,Object o2){
-                logger.warn(marker,TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(new Object[]{o1,o2}));
+                logger.warn(marker,format(message,new Object[]{o1,o2}));
             }
         };
     }

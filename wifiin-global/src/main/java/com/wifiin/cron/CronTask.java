@@ -21,7 +21,7 @@ public interface CronTask extends Runnable{
      */
     public String name();
     /**
-     * 当前任务是否正在执行，可以重写此方法实现分布式定时器,默认是false
+     * 是否已有线程正在执行当前任务，可以重写此方法实现分布式定时器,默认是false
      * @return
      */
     public default boolean executing(){
@@ -82,10 +82,15 @@ public interface CronTask extends Runnable{
     }
     @Override
     public default void run(){
+        String name=name();
+        String cron=cron0();
         try{
+            log.info("CronTask.run.start:{};{}",name,cron);
             if(executable()){
+                log.info("CronTask.run.executable:{};{}",name,cron);
                 try{
                     execute();
+                    log.info("CronTask.run.end:{};{}",name,cron);
                     executedAt(new Date());
                 }finally{
                     clean0();

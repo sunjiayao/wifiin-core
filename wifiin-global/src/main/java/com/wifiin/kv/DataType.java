@@ -6,60 +6,60 @@ import java.util.Map;
 
 import com.google.common.collect.Maps;
 import com.wifiin.kv.command.ExpireCommand;
+import com.wifiin.kv.command.SimpleCommand;
+import com.wifiin.kv.command.SystemCommand;
 
 public enum DataType{
     SYSTEM(0) {
+        @SuppressWarnings("unchecked")
         @Override
-        public <R extends Result> Command<R> command(byte cmd){
-            // TODO Auto-generated method stub
-            return null;
+        public <R extends Result> Command<R> command(int cmd){
+            return (Command<R>)SystemCommand.valueOf(cmd);
         }
     },
     EXPIRE(1) {
         @SuppressWarnings("unchecked")
         @Override
-        public <R extends Result> Command<R> command(byte cmd){
+        public <R extends Result> Command<R> command(int cmd){
             return (Command<R>)ExpireCommand.valueOf(cmd);
         }
     },
     SIMPLE(2) {
+        @SuppressWarnings("unchecked")
         @Override
-        public <R extends Result> Command<R> command(byte cmd){
-            // TODO Auto-generated method stub
-            return null;
+        public <R extends Result> Command<R> command(int cmd){
+            return (Command<R>)SimpleCommand.valueOf(cmd);
         }
     },
     LIST(3) {
         @Override
-        public <R extends Result> Command<R> command(byte cmd){
-            // TODO Auto-generated method stub
+        public <R extends Result> Command<R> command(int cmd){
             return null;
         }
     },
     SET(4) {
         @Override
-        public <R extends Result> Command<R> command(byte cmd){
-            // TODO Auto-generated method stub
+        public <R extends Result> Command<R> command(int cmd){
             return null;
         }
     },
     ZSET(5) {
         @Override
-        public <R extends Result> Command<R> command(byte cmd){
+        public <R extends Result> Command<R> command(int cmd){
             // TODO Auto-generated method stub
             return null;
         }
     },
     HASH(6) {
         @Override
-        public <R extends Result> Command<R> command(byte cmd){
+        public <R extends Result> Command<R> command(int cmd){
             // TODO Auto-generated method stub
             return null;
         }
     },
     GEOHASH(7) {
         @Override
-        public <R extends Result> Command<R> command(byte cmd){
+        public <R extends Result> Command<R> command(int cmd){
             // TODO Auto-generated method stub
             return null;
         }
@@ -82,5 +82,5 @@ public enum DataType{
     public static DataType valueOf(int value){
         return DATA_TYPE_MAP.get(value);
     }
-    public abstract <R extends Result> Command<R> command(byte cmd);
+    public abstract <R extends Result> Command<R> command(int cmd);
 }

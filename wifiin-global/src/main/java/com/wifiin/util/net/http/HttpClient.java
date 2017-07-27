@@ -1,6 +1,6 @@
-
 package com.wifiin.util.net.http;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -49,6 +49,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 
@@ -80,12 +81,12 @@ public class HttpClient {
     private static final String CONNECTION=HTTP.CONN_DIRECTIVE;
     private static final String ACCEPT_CHARSET="Accept-Charset";
     private static final String NO_PROXY="";
-    private static final Registry<ConnectionSocketFactory> REGISTRY;
+    private static Registry<ConnectionSocketFactory> REGISTRY;
     private static final PoolingHttpClientConnectionManager POOLED_CONNECTION_MANAGER;
     private static final Map<String,CloseableHttpClient> HTTP_MAP=Maps.newConcurrentMap();
+    private static final RegistryBuilder<ConnectionSocketFactory> REGISTRY_BUILDER = RegistryBuilder.<ConnectionSocketFactory>create(); 
     static{
         try{
-            RegistryBuilder<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create(); 
 //            SSLContext sslContext = SSLContexts.createDefault();
             KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());  
             //信任任何链接  
@@ -94,10 +95,10 @@ public class HttpClient {
             };
             SSLContext sslContext = SSLContexts.custom().useProtocol("https").useTLS().loadTrustMaterial(trustStore, anyTrustStrategy).build();  
             LayeredConnectionSocketFactory sslSF = new SSLConnectionSocketFactory(sslContext, SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);  
-            registryBuilder.register("https", sslSF);  
+            REGISTRY_BUILDER.register("https", sslSF);
             ConnectionSocketFactory plainSF = new PlainConnectionSocketFactory();  
-            registryBuilder.register("http", plainSF); 
-            REGISTRY = registryBuilder.build();  
+            REGISTRY_BUILDER.register("http", plainSF); 
+            REGISTRY = REGISTRY_BUILDER.build();  
             POOLED_CONNECTION_MANAGER = new PoolingHttpClientConnectionManager(REGISTRY);
             ShutdownHookUtil.addHook(()->{
                 HTTP_MAP.values().forEach((http)->{
@@ -137,6 +138,26 @@ public class HttpClient {
     private int maxConnTotal=1000;
     private int maxConnPerRoute=1000;
     private long connectLiveTime=5000;
+    private LayeredConnectionSocketFactory sslsf;
+    private File keyStore;
+    private String password;
+    
+    public void setTrustMaterial(File keyStore,String password) {
+        try{
+            this.keyStore=keyStore;
+            this.password=password;
+            SSLContextBuilder builder=org.apache.http.ssl.SSLContexts.custom();
+            if(Help.isEmpty(password)){
+                builder.loadTrustMaterial(keyStore);
+            }else{
+                builder.loadTrustMaterial(keyStore,password.toCharArray());
+            }
+            javax.net.ssl.SSLContext sslContext = builder.useProtocol("https").build();  
+            sslsf = new SSLConnectionSocketFactory(sslContext, SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);  
+        }catch(Exception e){
+            throw new HttpClientException(e);
+        }
+    }
     
     public int getConnectionRequestTimeout(){
         return connectionRequestTimeout;
@@ -338,6 +359,9 @@ public class HttpClient {
                 .setConnectionTimeToLive(connectionLiveMinutes,TimeUnit.MINUTES)
                 .setConnectionManager(httpClientConnectionManager)
                 .setMaxConnTotal(maxConnTotal).setMaxConnPerRoute(maxConnPerRoute);
+        if(sslsf!=null){
+            httpClientBuilder.setSSLSocketFactory(sslsf);
+        }
         boolean proxy=Help.isNotEmpty(proxyHost) && proxyPort>0;
         if(useProxy || proxy){
             HttpRoutePlanner routePlanner;
@@ -353,7 +377,7 @@ public class HttpClient {
     }
     private CloseableHttpClient httpClient(){
         if(pooled){
-            return HTTP_MAP.computeIfAbsent(ThreadLocalStringBuilder.builder().append(proxyHost).append(":").append(proxyPort).toString(),(k)->{
+            return HTTP_MAP.computeIfAbsent(ThreadLocalStringBuilder.builder().append(proxyHost).append(":").append(proxyPort).append('#').append(keyStore.getAbsolutePath()).append('#').append(password).toString(),(k)->{
                 return createHttpClient(POOLED_CONNECTION_MANAGER);
             });
         }else{

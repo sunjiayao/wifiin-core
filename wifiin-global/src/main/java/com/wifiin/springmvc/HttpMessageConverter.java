@@ -385,7 +385,7 @@ public class HttpMessageConverter<E> extends AbstractGenericHttpMessageConverter
             content=outputMessageConvert(uri,content);
             outMsg.getBody().write(content);
         }catch(Exception e){
-            log.warn("HttpMessageConverter.write:{};{}",Base64.encodeBase64String(content),e);
+            log.warn("HttpMessageConverter.write:"+Base64.encodeBase64String(content),e);
             throw new DataTransformerException(e);
         }
     }

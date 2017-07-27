@@ -100,7 +100,7 @@ public class RocksDBStore implements Store{
      * @param continueOnThrown 如果从fn抛出异常是否继续
      */
     public void iterate(byte[] prefix,BiFunction<byte[],byte[],Boolean> fn,boolean continueOnThrown){
-        iterate(prefix,prefix,fn,continueOnThrown);
+        iterate(prefix,prefix,fn,true,continueOnThrown);
     }
     /**
      * 遍历每一个key前缀是prefix的键值对。忽略从fn抛出的异常
@@ -109,16 +109,17 @@ public class RocksDBStore implements Store{
      * @param fn
      */
     public void iterate(byte[] min,byte[] max,BiFunction<byte[],byte[],Boolean> fn){
-        iterate(min,max,fn,true);
+        iterate(min,max,fn,true,true);
     }
     /**
      * 遍历每一个key前缀是prefix的键值对。前闭后闭区间
      * @param min 包含
-     * @param max 包含
+     * @param max 由includeMax决定是否包含max
      * @param fn 针对遍历的每一个键值对执行的逻辑
+     * @param includeMax 是否包含max
      * @param continueOnThrown 如果从fn抛出异常是否继续
      */
-    public void iterate(byte[] min,byte[] max,BiFunction<byte[],byte[],Boolean> fn,boolean continueOnThrown){
+    public void iterate(byte[] min,byte[] max,BiFunction<byte[],byte[],Boolean> fn,boolean includeMax,boolean continueOnThrown){
         RocksIterator iterator=db.newIterator();
         boolean toContinue=true;
         try{
@@ -126,7 +127,7 @@ public class RocksDBStore implements Store{
                 try{
                     byte[] key=iterator.key();
                     int compare=compareBytes(key,max);
-                    if(compare<=0){
+                    if(includeMax?compare<=0:compare<0){
                         toContinue=fn.apply(key,iterator.value());
                     }else{
                         return;
@@ -146,9 +147,10 @@ public class RocksDBStore implements Store{
      * @param min 
      * @param max 
      * @param fn
+     * @param includeMin
      * @param continueOnThrown 如果从fn抛出异常是否继续
      */
-    public void reserveIterate(byte[] min,byte[] max,BiFunction<byte[],byte[],Boolean> fn,boolean continueOnThrown){
+    public void reserveIterate(byte[] min,byte[] max,BiFunction<byte[],byte[],Boolean> fn,boolean includeMin,boolean continueOnThrown){
         RocksIterator iterator=db.newIterator();
         boolean toContinue=true;
         try{
@@ -156,7 +158,7 @@ public class RocksDBStore implements Store{
                 try{
                     byte[] key=iterator.key();
                     int compare=compareBytes(key,min);
-                    if(compare>=0){
+                    if(includeMin?compare>=0:compare>0){
                         toContinue=fn.apply(key,iterator.value());
                     }else{
                         return;
