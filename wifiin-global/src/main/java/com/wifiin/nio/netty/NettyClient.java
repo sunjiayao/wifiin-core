@@ -91,19 +91,32 @@ public class NettyClient<I,O extends OutputObject,T extends AbstractCommonCodec<
         }else{
             closeChannel(ch);
         }
-        return channels.computeIfAbsent(addr,(ad)->{
-            long timeout=params.connectionTimeoutMillis();
-            ChannelFuture cf=bootstrap.connect(ad);
-//                                      .syncUninterruptibly();
-            if(cf.awaitUninterruptibly(timeout) && channelOK(cf.channel())){
-                log.info("createChannel: connect remote host[{}] success, {}", ad, cf.toString());
-                return new ChannelWrapper(addr,cf.channel(),channels);
-            }else{
-                log.warn("createChannel: connect remote host[" + ad + "] failed, " + cf.toString(), cf.cause());
-                closeChannel(cf.channel());
-                return null;
-            }
-        });
+        return channels.computeIfAbsent(addr,this::newChannel);
+    }
+    public Channel newChannel(){
+        return newChannel(params.host(),params.port());
+    }
+    public Channel newChannel(String host){
+        return newChannel(host,params.port());
+    }
+    public Channel newChannel(int port){
+        return newChannel(params.host(),port);
+    }
+    public Channel newChannel(String host,int port){
+        return newChannel(InetSocketAddress.createUnresolved(host,port));
+    }
+    public Channel newChannel(InetSocketAddress addr){
+        long timeout=params.connectionTimeoutMillis();
+        ChannelFuture cf=bootstrap.connect(addr);
+//                                  .syncUninterruptibly();
+        if(cf.awaitUninterruptibly(timeout) && channelOK(cf.channel())){
+            log.info("createChannel: connect remote host[{}] success, {}", addr, cf.toString());
+            return new ChannelWrapper(addr,cf.channel(),channels);
+        }else{
+            log.warn("createChannel: connect remote host[" + addr + "] failed, " + cf.toString(), cf.cause());
+            closeChannel(cf.channel());
+            return null;
+        } 
     }
     private boolean channelOK(Channel ch){
         return ch!=null && ch.isActive();

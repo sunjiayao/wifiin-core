@@ -227,120 +227,120 @@ public class HttpClient {
         this.pooled=pooled;
     }
     
-    public InputStream putForInputStream() throws IOException{
+    public InputStream putForInputStream(){
         return access(InputStream.class,HttpMethod.PUT);
     }
-    public String put() throws IOException{
+    public String put(){
         return access(String.class,HttpMethod.PUT);
     }
-    public <R> R put(Class<R> r) throws IOException{
+    public <R> R put(Class<R> r){
         return access(r,HttpMethod.PUT);
     }
-    public void put(OutputStream out) throws IOException{
+    public void put(OutputStream out){
         access(HttpMethod.PUT,out);
     }
     
-    public InputStream deleteForInputStream() throws IOException{
+    public InputStream deleteForInputStream(){
         return access(InputStream.class,HttpMethod.DELETE);
     }
-    public String delete() throws IOException{
+    public String delete() {
         return access(String.class,HttpMethod.DELETE);
     }
-    public <R> R delete(Class<R> r) throws IOException{
+    public <R> R delete(Class<R> r) {
         return access(r,HttpMethod.DELETE);
     }
-    public void delete(OutputStream out) throws IOException{
+    public void delete(OutputStream out) {
         access(HttpMethod.DELETE,out);
     }
     
-    public InputStream postForInputStream() throws IOException{
+    public InputStream postForInputStream() {
         return access(InputStream.class,HttpMethod.POST);
     }
-    public String post() throws IOException{
+    public String post() {
         return access(String.class,HttpMethod.POST);
     }
-    public <R> R post(Class<R> r) throws IOException{
+    public <R> R post(Class<R> r) {
         return access(r,HttpMethod.POST);
     }
-    public void post(OutputStream out) throws IOException{
+    public void post(OutputStream out) {
         access(HttpMethod.POST,out);
     }
     
-    public InputStream getForInputStream() throws IOException{
+    public InputStream getForInputStream() {
         return access(InputStream.class,HttpMethod.GET);
     }
-    public String get() throws IOException{
+    public String get() {
         return access(String.class,HttpMethod.GET);
     }
-    public <R> R get(Class<R> r) throws IOException{
+    public <R> R get(Class<R> r){
         return access(r,HttpMethod.GET);
     }
-    public <P> void get(OutputStream out) throws IOException{
+    public <P> void get(OutputStream out) {
         access(HttpMethod.GET,out);
     }
     
-    public InputStream optionsForInputStream() throws IOException{
+    public InputStream optionsForInputStream() {
         return access(InputStream.class,HttpMethod.OPTIONS);
     }
-    public String options() throws IOException{
+    public String options() {
         return access(String.class,HttpMethod.OPTIONS);
     }
-    public <R> R options(Class<R> r) throws IOException{
+    public <R> R options(Class<R> r) {
         return access(r,HttpMethod.OPTIONS);
     }
-    public <P> void options(OutputStream out) throws IOException{
+    public <P> void options(OutputStream out) {
         access(HttpMethod.OPTIONS,out);
     }
     
-    public InputStream traceForInputStream() throws IOException{
+    public InputStream traceForInputStream() {
         return access(InputStream.class,HttpMethod.TRACE);
     }
-    public String trace() throws IOException{
+    public String trace() {
         return access(String.class,HttpMethod.TRACE);
     }
-    public <R> R trace(Class<R> r) throws IOException{
+    public <R> R trace(Class<R> r) {
         return access(r,HttpMethod.TRACE);
     }
-    public <P> void trace(OutputStream out) throws IOException{
+    public <P> void trace(OutputStream out) {
         access(HttpMethod.TRACE,out);
     }
     
-    public InputStream headForInputStream() throws IOException{
+    public InputStream headForInputStream() {
         return access(InputStream.class,HttpMethod.HEAD);
     }
-    public String head() throws IOException{
+    public String head() {
         return access(String.class,HttpMethod.HEAD);
     }
-    public <R> R head(Class<R> r) throws IOException{
+    public <R> R head(Class<R> r) {
         return access(r,HttpMethod.HEAD);
     }
-    public <P> void head(OutputStream out) throws IOException{
+    public <P> void head(OutputStream out) {
         access(HttpMethod.HEAD,out);
     }
     
-    public InputStream patchForInputStream() throws IOException{
+    public InputStream patchForInputStream() {
         return access(InputStream.class,HttpMethod.PATCH);
     }
-    public String patch() throws IOException{
+    public String patch() {
         return access(String.class,HttpMethod.PATCH);
     }
-    public <R> R patch(Class<R> r) throws IOException{
+    public <R> R patch(Class<R> r) {
         return access(r,HttpMethod.PATCH);
     }
-    public <P> void patch(OutputStream out) throws IOException{
+    public <P> void patch(OutputStream out) {
         access(HttpMethod.PATCH,out);
     }
     
-    public String access(HttpMethod method) throws IOException{
+    public String access(HttpMethod method) {
         return access(method,String.class);
     }
-    public <R,P> R access(HttpMethod method,Class<R> r) throws IOException{
+    public <R,P> R access(HttpMethod method,Class<R> r) {
         return communicate(method,r,null);
     }
-    public <R> R access(Class<R> r,HttpMethod method) throws IOException{
+    public <R> R access(Class<R> r,HttpMethod method){
         return access(method,r);
     }
-    public <P> void access(HttpMethod method,OutputStream out) throws IOException{
+    public <P> void access(HttpMethod method,OutputStream out) {
         communicate(method,Void.class,out);
     }
     private CloseableHttpClient createHttpClient(HttpClientConnectionManager httpClientConnectionManager){
@@ -377,7 +377,13 @@ public class HttpClient {
     }
     private CloseableHttpClient httpClient(){
         if(pooled){
-            return HTTP_MAP.computeIfAbsent(ThreadLocalStringBuilder.builder().append(proxyHost).append(":").append(proxyPort).append('#').append(keyStore.getAbsolutePath()).append('#').append(password).toString(),(k)->{
+            StringBuilder keyBuilder=ThreadLocalStringBuilder.builder();
+            keyBuilder.append(proxyHost).append(":").append(proxyPort).append('#');
+            if(keyStore!=null){
+                keyBuilder.append(keyStore.getAbsolutePath());
+            }
+            keyBuilder.append('#').append(password);
+            return HTTP_MAP.computeIfAbsent(keyBuilder.toString(),(k)->{
                 return createHttpClient(POOLED_CONNECTION_MANAGER);
             });
         }else{
@@ -408,7 +414,7 @@ public class HttpClient {
             addHeader(REQUEST_COOKIE_HEADER,cookies.toString());
         }
     }
-    private <R,P> R communicate(HttpMethod method,Class<R> r,OutputStream out) throws IOException{
+    private <R,P> R communicate(HttpMethod method,Class<R> r,OutputStream out) {
         CloseableHttpClient http=httpClient();
         requestData=method.method(url,requestEntity);
         populateRequestHeader();
@@ -420,13 +426,19 @@ public class HttpClient {
             status=response.getStatusLine();
             responseHeaders=response.getAllHeaders();
             return read(r,out);
+        }catch(IOException e){
+            throw new HttpClientException(e);
         }finally{
             if(!pooled){
-                http.close();
+                try{
+                    http.close();
+                }catch(IOException e){
+                    throw new HttpClientException(e);
+                }
             }
         }
     }
-    private <R> R read(Class<R> r,OutputStream out) throws IOException{
+    private <R> R read(Class<R> r,OutputStream out) throws IOException {
         return ReadExecutor.execute(this,r,out);
     }
     
@@ -489,7 +501,7 @@ public class HttpClient {
         public abstract <R> R read(HttpClient http,OutputStream out) throws IOException;
     }
     
-    public int getResponseCode() throws IOException{
+    public int getResponseCode(){
         return getStatus().getStatusCode();
     }
     public StatusLine getStatus(){
@@ -701,7 +713,7 @@ public class HttpClient {
         removeAllHttpProxy();
         removeAllHttpsProxy();
     }
-    public static void main(String[] args) throws IOException{
+    public static void main(String[] args) {
         System.out.println(new HttpClient("https://www.wifiin.cn").get());
     }
 }

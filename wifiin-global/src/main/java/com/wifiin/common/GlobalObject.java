@@ -407,5 +407,5 @@ public final class GlobalObject {
 //        System.out.println(ThreadLocalKryo.kryo().writeClassAndObject(t).length);
 //        String txt=new String(result);
 //        System.out.println(txt);
-//    }
+//    } 
 }

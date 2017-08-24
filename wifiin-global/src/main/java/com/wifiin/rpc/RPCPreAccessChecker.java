@@ -6,7 +6,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
  * 在执行RPCAccessAOP之前的一些检查，在RPCAccessAOP内部调用本接口的实现
  * 
  * @author Running
- *
  */
 public interface RPCPreAccessChecker{
     /**

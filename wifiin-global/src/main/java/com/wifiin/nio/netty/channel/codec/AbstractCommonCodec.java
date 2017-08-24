@@ -20,39 +20,51 @@ public abstract class AbstractCommonCodec<I,O extends OutputObject> extends Simp
 
     private ReplayingDecoderByteBuf buf=new ReplayingDecoderByteBuf();
     public AbstractCommonCodec(){}
-    
+    private class Decoded{
+        public Decoder<I> decoder;
+        public I i;
+    }
     /**
      * 如果报文解析分好多步，本方法返回第一步的解析器
      * @return
      */
     protected abstract Decoder<I> decoder();
-    @SuppressWarnings("unchecked")
-    private Decoder<I> decoder=Decoder.FINAL_DECODER;
-    private I i;
+    private ThreadLocal<Decoded> decoded=new ThreadLocal<>();
+    
     /**
      * 解析报文
      * @param msg 待解析的字节保存在这里
      * @return 解析ByteBuf得到的报文对象
      */
     protected I decode(){
-        if(decoder==Decoder.FINAL_DECODER){
+        Decoded decoded=this.decoded.get();
+        if(decoded==null){
+            decoded=new Decoded();
+            this.decoded.set(decoded);
+        }
+        Decoder<I> decoder=decoded.decoder;
+        I i=decoded.i;
+        if(decoder==null || decoder==Decoder.FINAL_DECODER){
             decoder=decoder();
+            decoded.decoder=decoder;
         }
         try{
             do{
                 buf.markReaderIndex();
                 i=decoder.decode(i,buf);
                 decoder=decoder.next();
+                decoded.decoder=decoder;
+                decoded.i=i;
             }while(decoder!=Decoder.FINAL_DECODER);
         }catch(Signal s){
             s.expect(ReplayingDecoderByteBuf.REPLAY);
             buf.resetReaderIndex();
+            buf.discardReadBytes();
         }finally{
             buf.terminate();
         }
-        I r=i;
-        i=null;
-        return r;
+        decoded.i=null;
+        return i;
     }
     /**
      * 最好将程序异步化执行。本类对象会将execute(I) encode(O,ByteBuf)放到一个Consumer对象里作为本方法参数执行。
@@ -80,17 +92,23 @@ public abstract class AbstractCommonCodec<I,O extends OutputObject> extends Simp
         buf.setCumulation(msg);
         ThreadLocalChannelHandlerContext.set(ctx);
         I i=decode();
+        msg.release();
         executor(i,(param)->{
             execute(ctx,param);
         });
     }
-    private void execute(ChannelHandlerContext ctx,I i){
+    protected void execute(ChannelHandlerContext ctx,I i){
         O o=execute(i);
         if(o==OutputObject.CLOSE_CHANNEL){
             ctx.close();
         }else if(o!=OutputObject.ACCOMPLISHED){
-            ByteBuf response=ctx.alloc().buffer();
-            encode(o,response);
+            ByteBuf response=null;
+            if(!(o instanceof ByteBuf)){
+                response=(ByteBuf)o;
+            }else{
+                response=ctx.alloc().buffer();
+                encode(o,response);
+            }
             ctx.writeAndFlush(response);
         }
     }

@@ -2,22 +2,27 @@ package com.wifiin.log;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
-import org.slf4j.Logger;
 import org.slf4j.Marker;
 
 import com.google.common.collect.Lists;
 import com.wifiin.util.text.template.TextTemplateFormatterType;
 
 public class LoggerFactory{
+    public static interface Logger extends org.slf4j.Logger{
+        public void debug(String message,Throwable t,Object... msgArgs);
+        public void error(String message,Throwable t,Object... msgArgs);
+        public void info(String message,Throwable t,Object... msgArgs);
+        public void warn(String message,Throwable t,Object... msgArgs);
+        public void trace(String message,Throwable t,Object... msgArgs);
+    }
     public static Logger getLogger(Class cls){
         return getLogger(org.slf4j.LoggerFactory.getLogger(cls));
     }
     public static Logger getLogger(String name){
         return getLogger(org.slf4j.LoggerFactory.getLogger(name));
     }
-    private static Logger getLogger(Logger logger){
+    private static Logger getLogger(org.slf4j.Logger logger){
         return new Logger(){
             
             private String format(String message,Object o){
@@ -26,7 +31,7 @@ public class LoggerFactory{
                     list.addAll((Collection)o);
                     o=list;
                 }
-                return TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o instanceof List || o.getClass().isArray() ? o : new Object[]{o});
+                return TextTemplateFormatterType.PLAIN_TEXT.formatter(message,"{","}").format(o);
             }
             
             @Override
@@ -58,7 +63,7 @@ public class LoggerFactory{
             public void debug(String message,Object o1,Object o2){
                 logger.debug(format(message,new Object[]{o1,o2}));
             }
-
+            
             @Override
             public void debug(Marker marker,String o1,Object o2){
                 logger.debug(marker,o1,o2);
@@ -332,6 +337,31 @@ public class LoggerFactory{
             @Override
             public void warn(Marker marker,String message,Object o1,Object o2){
                 logger.warn(marker,format(message,new Object[]{o1,o2}));
+            }
+
+            @Override
+            public void debug(String message,Throwable t,Object... msgArgs){
+                debug(format(message,msgArgs),t);
+            }
+
+            @Override
+            public void error(String message,Throwable t,Object... msgArgs){
+                error(format(message,msgArgs),t);
+            }
+
+            @Override
+            public void info(String message,Throwable t,Object... msgArgs){
+                info(format(message,msgArgs),t);
+            }
+
+            @Override
+            public void warn(String message,Throwable t,Object... msgArgs){
+                warn(format(message,msgArgs),t);
+            }
+
+            @Override
+            public void trace(String message,Throwable t,Object... msgArgs){
+                trace(format(message,msgArgs),t);
             }
         };
     }
