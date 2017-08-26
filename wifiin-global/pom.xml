@@ -22,7 +22,8 @@
 		<app.encoding>UTF-8</app.encoding>
 		<maven.build.timestamp.format>yyyy-MM-dd.HH:mm:ss</maven.build.timestamp.format>
 		<app.version>1.0.0</app.version>
-        <kotlin.version>1.1.4-dev-119</kotlin.version>
+        <kotlin.version>1.2-M2</kotlin.version>
+        <kotlinx.coroutines.version>0.17</kotlinx.coroutines.version>
 	</properties>
 
 	<repositories>
@@ -87,6 +88,8 @@
             <name>local mycat nexus</name>
             <url>http://maven.wifiin.cn/repository/mycat-nexus/</url>
         </repository>
+        <!-- 
+         -->
 		<repository>
 			<id>nexus</id>
 			<name>local private nexus</name>
@@ -378,12 +381,12 @@
 	        <version>4.0.0</version>
 	        <scope>provided</scope>
 	    </dependency>
-	    <dependency>
-		    <groupId>io.netty</groupId>
-		    <artifactId>netty-all</artifactId>
-		    <version>4.1.10.Final</version>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.14.Final</version>
 		    <scope>provided</scope>
-		</dependency>
+        </dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-pool2</artifactId>
@@ -478,7 +481,7 @@
             <artifactId>groovy-all</artifactId>
             <version>2.4.1</version>
         </dependency>
-<!-- 
+        <!-- 
 		<dependency>
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-stdlib</artifactId>
@@ -562,27 +565,27 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-reactive</artifactId>
-            <version>0.15</version>
+            <version>${kotlinx.coroutines.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-core</artifactId>
-            <version>0.15</version>
+            <version>${kotlinx.coroutines.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-jdk8</artifactId>
-            <version>0.15</version>
+            <version>${kotlinx.coroutines.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-nio</artifactId>
-            <version>0.15</version>
+            <version>${kotlinx.coroutines.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
-            <version>2.9.0.pr3</version>
+            <version>2.9.0</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -590,7 +593,6 @@
             <version>1.0.0</version>
         </dependency>
  -->
-
 		<dependency>
             <groupId>org.rocksdb</groupId>
             <artifactId>rocksdbjni</artifactId>
@@ -621,6 +623,11 @@
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-core</artifactId>
             <version>3.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.maxmind.geoip2</groupId>
+            <artifactId>geoip2</artifactId>
+            <version>2.9.0</version>
         </dependency>
 	</dependencies>
 

@@ -1,7 +1,5 @@
 package com.wifiin.cron;
 
-import java.io.IOException;
-
 import com.wifiin.cron.exception.CronException;
 import com.wifiin.util.net.http.HttpClient;
 
@@ -15,7 +13,7 @@ public interface HttpCronTask extends CronTask{
     public default void execute(){
         try{
             new HttpClient(url()).get();
-        }catch(IOException e){
+        }catch(Exception e){
             throw new CronException(e);
         }
     }

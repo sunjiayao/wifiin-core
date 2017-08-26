@@ -29,7 +29,6 @@ public class RPCMethodGetterException extends RuntimeException{
 
     public RPCMethodGetterException(Throwable cause){
         super(cause);
-        // TODO Auto-generated constructor stub
     }
     
 }

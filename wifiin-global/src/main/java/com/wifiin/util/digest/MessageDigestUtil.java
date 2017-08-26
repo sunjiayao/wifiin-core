@@ -26,23 +26,36 @@ public class MessageDigestUtil{
 	public static final int MESSAGE_DIGEST_OUTPUT_TYPE_BASE64=0;
 	public static final int MESSAGE_DIGEST_OUTPUT_TYPE_HEX=1;
 	
+	public static final String MESSAGE_DIGEST_RIPEMD128="RIPEMD-128";
+	public static final String MESSAGE_DIGEST_RIPEMD160="RIPEMD-160";
+	
 	public static final String MESSAGE_DIGEST_MD2="md2";
 	public static final String MESSAGE_DIGEST_MD5="md5";
 	
+	public static final String MESSAGE_DIGEST_SHA224="SHA-224";
 	public static final String MESSAGE_DIGEST_SHA256="SHA-256";
 	public static final String MESSAGE_DIGEST_SHA512="SHA-512";
 	public static final String MESSAGE_DIGEST_SHA384="SHA-384";
 	public static final String MESSAGE_DIGEST_SHA1="sha-1";
 	
+    public static final String MESSAGE_DIGEST_SHA3_224="SHA3-224";
+    public static final String MESSAGE_DIGEST_SHA3_256="SHA3-256";
+    public static final String MESSAGE_DIGEST_SHA3_512="SHA3-512";
+    public static final String MESSAGE_DIGEST_SHA3_384="SHA3-384";
+	
 	public static final String MESSAGE_DIGEST_HMAC_SHA1="hmac-sha1";
+	public static final String MESSAGE_DIGEST_HMAC_SHA224="hmac-sha224";
 	public static final String MESSAGE_DIGEST_HMAC_SHA256="hmac-sha256";
 	public static final String MESSAGE_DIGEST_HMAC_SHA384="hmac-sha384";
 	public static final String MESSAGE_DIGEST_HMAC_SHA512="hmac-sha512";
 	public static final String MESSAGE_DIGEST_HMAC_SHA1024="hmac-sha1024";//不存在这个算法
 	public static final String MESSAGE_DIGEST_HMAC_MD5="hmac-md5";
 	public static final String MESSAGE_DIGEST_HMAC_MD2="hmac-md2";
+	public static final String MESSAGE_DIGEST_HMAC_RIPEMD128="hmac-ripemd128";
+	public static final String MESSAGE_DIGEST_HMAC_RIPEMD160="hmac-ripemd160";
 	
 	public static final String PBKDF2_HMAC_SHA1 = "PBKDF2WithHmacSHA1";
+	public static final String PBKDF2_HMAC_SHA224 = "PBKDF2WithHmacSHA224";
 	public static final String PBKDF2_HMAC_SHA256 = "PBKDF2WithHmacSHA256";
 	public static final String PBKDF2_HMAC_SHA384 = "PBKDF2WithHmacSHA384";
 	public static final String PBKDF2_HMAC_SHA512 = "PBKDF2WithHmacSHA512";
@@ -189,6 +202,74 @@ public class MessageDigestUtil{
 		return output(md5(src,offset,length),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
 	}
 	
+	public static byte[] ripemd128(String src) throws UnsupportedEncodingException{
+        return messageDigest(src,MESSAGE_DIGEST_RIPEMD128);
+    }
+    public static byte[] ripemd128(byte[] src){
+        return messageDigest(src,MESSAGE_DIGEST_RIPEMD128);
+    }
+    public static byte[] ripemd128(byte[] src, int offset,int length){
+        return messageDigest(src,offset,length,MESSAGE_DIGEST_RIPEMD128);
+    }
+    public static String ripemd128Base64(byte[] src){
+        return output(ripemd128(src),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String ripemd128Base64(byte[] src,int offset,int length){
+        return output(ripemd128(src,offset,length),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String ripemd128Hex(byte[] src){
+        return output(ripemd128(src),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String ripemd128Hex(byte[] src,int offset,int length){
+        return output(ripemd128(src,offset,length),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String ripemd128Hex(String src, String charset){
+        return messageDigest(src,charset,MESSAGE_DIGEST_RIPEMD128,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String ripemd128Base64(String src, String charset){
+        return messageDigest(src,charset,MESSAGE_DIGEST_RIPEMD128,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String ripemd128Hex(String src){
+        return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_RIPEMD128,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String ripemd128Base64(String src){
+        return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_RIPEMD128,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    
+    public static byte[] ripemd160(String src) throws UnsupportedEncodingException{
+        return messageDigest(src,MESSAGE_DIGEST_RIPEMD160);
+    }
+    public static byte[] ripemd160(byte[] src){
+        return messageDigest(src,MESSAGE_DIGEST_RIPEMD160);
+    }
+    public static byte[] ripemd160(byte[] src, int offset,int length){
+        return messageDigest(src,offset,length,MESSAGE_DIGEST_RIPEMD160);
+    }
+    public static String ripemd160Base64(byte[] src){
+        return output(ripemd160(src),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String ripemd160Base64(byte[] src,int offset,int length){
+        return output(ripemd160(src,offset,length),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String ripemd160Hex(byte[] src){
+        return output(ripemd160(src),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String ripemd160Hex(byte[] src,int offset,int length){
+        return output(ripemd160(src,offset,length),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String ripemd160Hex(String src, String charset){
+        return messageDigest(src,charset,MESSAGE_DIGEST_RIPEMD160,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String ripemd160Base64(String src, String charset){
+        return messageDigest(src,charset,MESSAGE_DIGEST_RIPEMD160,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String ripemd160Hex(String src){
+        return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_RIPEMD160,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String ripemd160Base64(String src){
+        return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_RIPEMD160,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+	
 	@Deprecated
     public static byte[] sha(String src) throws UnsupportedEncodingException{
         return sha1(src);
@@ -314,6 +395,40 @@ public class MessageDigestUtil{
         return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_SHA512,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
     }
     
+    public static byte[] sha224(String src) throws UnsupportedEncodingException{
+        return messageDigest(src,MESSAGE_DIGEST_SHA224);
+    }
+    public static byte[] sha224(byte[] src){
+        return messageDigest(src,MESSAGE_DIGEST_SHA224);
+    }
+    public static byte[] sha224(byte[] src, int offset,int length){
+        return messageDigest(src,offset,length,MESSAGE_DIGEST_SHA224);
+    }
+    public static String sha224Base64(byte[] src){
+        return output(sha224(src),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String sha224Base64(byte[] src,int offset,int length){
+        return output(sha224(src,offset,length),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String sha224Hex(byte[] src){
+        return output(sha224(src),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha224Hex(byte[] src,int offset,int length){
+        return output(sha224(src,offset,length),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha224Hex(String src, String charset){
+        return messageDigest(src,charset,MESSAGE_DIGEST_SHA224,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha224Base64(String src, String charset){
+        return messageDigest(src,charset,MESSAGE_DIGEST_SHA224,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String sha224Hex(String src){
+        return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_SHA224,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha224Base64(String src){
+        return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_SHA224,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    
     public static byte[] sha384(String src) throws UnsupportedEncodingException{
         return messageDigest(src,MESSAGE_DIGEST_SHA384);
     }
@@ -347,6 +462,143 @@ public class MessageDigestUtil{
     public static String sha384Base64(String src){
         return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_SHA384,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
     }
+    
+    public static byte[] sha3_224(String src) throws UnsupportedEncodingException{
+        return messageDigest(src,MESSAGE_DIGEST_SHA3_224);
+    }
+    public static byte[] sha3_224(byte[] src){
+        return messageDigest(src,MESSAGE_DIGEST_SHA3_224);
+    }
+    public static byte[] sha3_224(byte[] src, int offset,int length){
+        return messageDigest(src,offset,length,MESSAGE_DIGEST_SHA3_224);
+    }
+    public static String sha3_224Base64(byte[] src){
+        return output(sha3_224(src),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String sha3_224Base64(byte[] src,int offset,int length){
+        return output(sha3_224(src,offset,length),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String sha3_224Hex(byte[] src){
+        return output(sha3_224(src),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_224Hex(byte[] src,int offset,int length){
+        return output(sha3_224(src,offset,length),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_224Hex(String src, String charset){
+        return messageDigest(src,charset,MESSAGE_DIGEST_SHA3_224,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_224Base64(String src, String charset){
+        return messageDigest(src,charset,MESSAGE_DIGEST_SHA3_224,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String sha3_224Hex(String src){
+        return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_SHA3_224,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_224Base64(String src){
+        return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_SHA3_224,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    
+    public static byte[] sha3_384(String src) throws UnsupportedEncodingException{
+        return messageDigest(src,MESSAGE_DIGEST_SHA3_384);
+    }
+    public static byte[] sha3_384(byte[] src){
+        return messageDigest(src,MESSAGE_DIGEST_SHA3_384);
+    }
+    public static byte[] sha3_384(byte[] src, int offset,int length){
+        return messageDigest(src,offset,length,MESSAGE_DIGEST_SHA3_384);
+    }
+    public static String sha3_384Base64(byte[] src){
+        return output(sha3_384(src),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String sha3_384Base64(byte[] src,int offset,int length){
+        return output(sha3_384(src,offset,length),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String sha3_384Hex(byte[] src){
+        return output(sha3_384(src),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_384Hex(byte[] src,int offset,int length){
+        return output(sha3_384(src,offset,length),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_384Hex(String src, String charset){
+        return messageDigest(src,charset,MESSAGE_DIGEST_SHA3_384,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_384Base64(String src, String charset){
+        return messageDigest(src,charset,MESSAGE_DIGEST_SHA3_384,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String sha3_384Hex(String src){
+        return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_SHA3_384,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_384Base64(String src){
+        return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_SHA3_384,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    
+    public static byte[] sha3_256(String src) throws UnsupportedEncodingException{
+        return messageDigest(src,MESSAGE_DIGEST_SHA3_256);
+    }
+    public static byte[] sha3_256(byte[] src){
+        return messageDigest(src,MESSAGE_DIGEST_SHA3_256);
+    }
+    public static byte[] sha3_256(byte[] src, int offset,int length){
+        return messageDigest(src,offset,length,MESSAGE_DIGEST_SHA3_256);
+    }
+    public static String sha3_256Base64(byte[] src){
+        return output(sha3_256(src),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String sha3_256Base64(byte[] src,int offset,int length){
+        return output(sha3_256(src,offset,length),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String sha3_256Hex(byte[] src){
+        return output(sha3_256(src),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_256Hex(byte[] src,int offset,int length){
+        return output(sha3_256(src,offset,length),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_256Hex(String src, String charset){
+        return messageDigest(src,charset,MESSAGE_DIGEST_SHA3_256,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_256Base64(String src, String charset){
+        return messageDigest(src,charset,MESSAGE_DIGEST_SHA3_256,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String sha3_256Hex(String src){
+        return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_SHA3_256,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_256Base64(String src){
+        return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_SHA3_256,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    
+    public static byte[] sha3_512(String src) throws UnsupportedEncodingException{
+        return messageDigest(src,MESSAGE_DIGEST_SHA3_512);
+    }
+    public static byte[] sha3_512(byte[] src){
+        return messageDigest(src,MESSAGE_DIGEST_SHA3_512);
+    }
+    public static byte[] sha3_512(byte[] src, int offset,int length){
+        return messageDigest(src,offset,length,MESSAGE_DIGEST_SHA3_512);
+    }
+    public static String sha3_512Base64(byte[] src){
+        return output(sha3_512(src),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String sha3_512Base64(byte[] src,int offset,int length){
+        return output(sha3_512(src,offset,length),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String sha3_512Hex(byte[] src){
+        return output(sha3_512(src),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_512Hex(byte[] src,int offset,int length){
+        return output(sha3_512(src,offset,length),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_512Hex(String src, String charset){
+        return messageDigest(src,charset,MESSAGE_DIGEST_SHA3_512,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_512Base64(String src, String charset){
+        return messageDigest(src,charset,MESSAGE_DIGEST_SHA3_512,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String sha3_512Hex(String src){
+        return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_SHA3_512,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String sha3_512Base64(String src){
+        return messageDigest(src,DEFAULT_CHARSET,MESSAGE_DIGEST_SHA3_512,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    
     private static Mac getInstance(byte[] key,String algorithm) throws NoSuchAlgorithmException, InvalidKeyException{
         SecretKeySpec signingKey = new SecretKeySpec(key, algorithm);
         Mac mac=Mac.getInstance(algorithm);
@@ -414,6 +666,90 @@ public class MessageDigestUtil{
 	public static String hmacSha1Hex(String src,String key,String charset) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException{
 		return hmacHex(src,key,MESSAGE_DIGEST_HMAC_SHA1,charset);
 	}
+	
+	public static byte[] hmacSha224(byte[] src,byte[] key) throws InvalidKeyException, NoSuchAlgorithmException{
+        return hmac(src,key,MESSAGE_DIGEST_HMAC_SHA224);
+    }
+    public static byte[] hmacSha224(byte[] src,String key,String charset) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException{
+        return hmac(src,key,charset,MESSAGE_DIGEST_HMAC_SHA224);
+    }
+    public static String hmacSha224Base64(byte[] src, byte[] key) throws InvalidKeyException, NoSuchAlgorithmException{
+        return output(hmacSha224(src,key),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String hmacSha224Base64(byte[] src,String key,String charset) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException{
+        return output(hmacSha224(src,key,charset),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String hmacSha224Hex(byte[] src,byte[] key) throws InvalidKeyException, NoSuchAlgorithmException{
+        return output(hmacSha224(src,key),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String hmacSha224Hex(byte[] src,String key,String charset) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException{
+        return output(hmacSha224(src,key,charset),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String hmacSha224(String src,String key,int outputType,String charset) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException{
+        return hmac(src,key,MESSAGE_DIGEST_HMAC_SHA224,outputType,charset);
+    }
+    public static String hmacSha224Base64(String src,String key,String charset) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException{
+        return hmacBase64(src,key,MESSAGE_DIGEST_HMAC_SHA224,charset);
+    }
+    public static String hmacSha224Hex(String src,String key,String charset) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException{
+        return hmacHex(src,key,MESSAGE_DIGEST_HMAC_SHA224,charset);
+    }
+    
+    public static byte[] hmacRipeMD128(byte[] src,byte[] key) throws InvalidKeyException, NoSuchAlgorithmException{
+        return hmac(src,key,MESSAGE_DIGEST_HMAC_RIPEMD128);
+    }
+    public static byte[] hmacRipeMD128(byte[] src,String key,String charset) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException{
+        return hmac(src,key,charset,MESSAGE_DIGEST_HMAC_RIPEMD128);
+    }
+    public static String hmacRipeMD128Base64(byte[] src, byte[] key) throws InvalidKeyException, NoSuchAlgorithmException{
+        return output(hmacRipeMD128(src,key),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String hmacRipeMD128Base64(byte[] src,String key,String charset) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException{
+        return output(hmacRipeMD128(src,key,charset),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String hmacRipeMD128Hex(byte[] src,byte[] key) throws InvalidKeyException, NoSuchAlgorithmException{
+        return output(hmacRipeMD128(src,key),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String hmacRipeMD128Hex(byte[] src,String key,String charset) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException{
+        return output(hmacRipeMD128(src,key,charset),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String hmacRipeMD128(String src,String key,int outputType,String charset) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException{
+        return hmac(src,key,MESSAGE_DIGEST_HMAC_RIPEMD128,outputType,charset);
+    }
+    public static String hmacRipeMD128Base64(String src,String key,String charset) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException{
+        return hmacBase64(src,key,MESSAGE_DIGEST_HMAC_RIPEMD128,charset);
+    }
+    public static String hmacRipeMD128Hex(String src,String key,String charset) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException{
+        return hmacHex(src,key,MESSAGE_DIGEST_HMAC_RIPEMD128,charset);
+    }
+    
+    public static byte[] hmacRipeMD160(byte[] src,byte[] key) throws InvalidKeyException, NoSuchAlgorithmException{
+        return hmac(src,key,MESSAGE_DIGEST_HMAC_RIPEMD160);
+    }
+    public static byte[] hmacRipeMD160(byte[] src,String key,String charset) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException{
+        return hmac(src,key,charset,MESSAGE_DIGEST_HMAC_RIPEMD160);
+    }
+    public static String hmacRipeMD160Base64(byte[] src, byte[] key) throws InvalidKeyException, NoSuchAlgorithmException{
+        return output(hmacRipeMD160(src,key),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String hmacRipeMD160Base64(byte[] src,String key,String charset) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException{
+        return output(hmacRipeMD160(src,key,charset),MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String hmacRipeMD160Hex(byte[] src,byte[] key) throws InvalidKeyException, NoSuchAlgorithmException{
+        return output(hmacRipeMD160(src,key),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String hmacRipeMD160Hex(byte[] src,String key,String charset) throws InvalidKeyException, NoSuchAlgorithmException, UnsupportedEncodingException{
+        return output(hmacRipeMD160(src,key,charset),MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    public static String hmacRipeMD160(String src,String key,int outputType,String charset) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException{
+        return hmac(src,key,MESSAGE_DIGEST_HMAC_RIPEMD160,outputType,charset);
+    }
+    public static String hmacRipeMD160Base64(String src,String key,String charset) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException{
+        return hmacBase64(src,key,MESSAGE_DIGEST_HMAC_RIPEMD160,charset);
+    }
+    public static String hmacRipeMD160Hex(String src,String key,String charset) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException{
+        return hmacHex(src,key,MESSAGE_DIGEST_HMAC_RIPEMD160,charset);
+    }
 	
 	public static byte[] hmacSha256(byte[] src,byte[] key) throws InvalidKeyException, NoSuchAlgorithmException{
 	    return hmac(src,key,MESSAGE_DIGEST_HMAC_SHA256);
@@ -578,6 +914,7 @@ public class MessageDigestUtil{
         SecretKey sk=skf.generateSecret(spec);
         return sk.getEncoded();
     }
+    
     public static byte[] pbkdf2HmacSha1(char[] src, byte[] salt, int iterations, int bytes)
             throws NoSuchAlgorithmException, InvalidKeySpecException, DestroyFailedException{
         return pkbdf(src,salt,iterations,bytes,PBKDF2_HMAC_SHA1);
@@ -590,6 +927,20 @@ public class MessageDigestUtil{
     }
     public static String pbkdf2HmacSha1Hex(String src, String salt,int iterations, int bytes) throws NoSuchAlgorithmException, InvalidKeySpecException, DestroyFailedException{
         return pbkdf2HmacSha1(src,salt,iterations,bytes,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
+    }
+    
+    public static byte[] pbkdf2HmacSha224(char[] src, byte[] salt, int iterations, int bytes)
+            throws NoSuchAlgorithmException, InvalidKeySpecException, DestroyFailedException{
+        return pkbdf(src,salt,iterations,bytes,PBKDF2_HMAC_SHA224);
+    }
+    public static String pbkdf2HmacSha224(String src, String salt,int iterations, int bytes, int outputType) throws NoSuchAlgorithmException, InvalidKeySpecException, DestroyFailedException{
+        return output(pbkdf2HmacSha224(src.toCharArray(),salt.getBytes(),iterations,bytes),outputType);
+    }
+    public static String pbkdf2HmacSha224Base64(String src, String salt,int iterations, int bytes) throws NoSuchAlgorithmException, InvalidKeySpecException, DestroyFailedException{
+        return pbkdf2HmacSha224(src,salt,iterations,bytes,MESSAGE_DIGEST_OUTPUT_TYPE_BASE64);
+    }
+    public static String pbkdf2HmacSha224Hex(String src, String salt,int iterations, int bytes) throws NoSuchAlgorithmException, InvalidKeySpecException, DestroyFailedException{
+        return pbkdf2HmacSha224(src,salt,iterations,bytes,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
     }
     
     public static byte[] pbkdf2HmacSha256(char[] src, byte[] salt, int iterations, int bytes)
@@ -633,12 +984,14 @@ public class MessageDigestUtil{
     public static String pbkdf2HmacSha512Hex(String src, String salt,int iterations, int bytes) throws NoSuchAlgorithmException, InvalidKeySpecException, DestroyFailedException{
         return pbkdf2HmacSha512(src,salt,iterations,bytes,MESSAGE_DIGEST_OUTPUT_TYPE_HEX);
     }
-    public static void main(String[] args) throws InvalidKeyException, NoSuchAlgorithmException{
+    public static void main(String[] args) throws Exception{
         byte[] src=new byte[20];
         ThreadLocalRandom.current().nextBytes(src);
         byte[] key=new byte[20];
         ThreadLocalRandom.current().nextBytes(key);
         
-        System.out.println(hmac(src,key,MESSAGE_DIGEST_HMAC_SHA1024).length);
+//        System.out.println(hmac(src,key,"hmac-ripemd160").length);
+//        System.out.println(messageDigest("","utf8","SHA-1024",MESSAGE_DIGEST_OUTPUT_TYPE_HEX));
+        System.out.println(pkbdf(new char[]{},new byte[]{0},1,1,"PBKDF2WithHmacRIPEMD160").length);
     }
 }

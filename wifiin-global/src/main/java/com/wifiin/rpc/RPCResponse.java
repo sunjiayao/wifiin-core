@@ -1,8 +1,7 @@
 package com.wifiin.rpc;
 
-import java.io.Serializable;
+import com.wifiin.common.CommonResponse;
 
-public interface RPCResponse extends Serializable{
-    public void setStatus(int status);
-    public int getStatus();
+public interface RPCResponse extends CommonResponse{
+    
 }
